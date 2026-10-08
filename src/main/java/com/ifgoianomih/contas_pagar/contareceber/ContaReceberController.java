@@ -21,8 +21,6 @@ import com.ifgoianomih.contas_pagar.contareceber.dto.ContaReceberResponse;
 import com.ifgoianomih.contas_pagar.contareceber.dto.QuitacaoRecebimentoRequest;
 import com.ifgoianomih.contas_pagar.contareceber.dto.SimulacaoRecebimentoResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 /**
@@ -31,7 +29,6 @@ import jakarta.validation.Valid;
  */
 @RestController
 @RequestMapping("/api/contas-receber")
-@Tag(name = "Contas a Receber", description = "Lancamento, consulta e quitacao de titulos a receber")
 public class ContaReceberController {
 
     private final ContaReceberService service;
@@ -41,7 +38,6 @@ public class ContaReceberController {
     }
 
     @GetMapping
-    @Operation(summary = "Lista titulos, com filtro opcional por situacao e periodo de vencimento")
     public List<ContaReceberResponse> listar(
             @RequestParam(required = false) String situacao,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
@@ -50,32 +46,27 @@ public class ContaReceberController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Detalha um titulo, com seus rateios e recebimentos")
     public ContaReceberResponse buscar(@PathVariable Long id) {
         return service.buscar(id);
     }
 
     @GetMapping("/inadimplentes")
-    @Operation(summary = "Titulos vencidos e ainda em aberto")
     public List<ContaReceberResponse> inadimplentes() {
         return service.inadimplentes();
     }
 
     @PostMapping
-    @Operation(summary = "Lanca um novo titulo a receber")
     public ResponseEntity<ContaReceberResponse> lancar(@RequestBody @Valid ContaReceberRequest req) {
         ContaReceberResponse criada = service.lancar(req);
         return ResponseEntity.created(URI.create("/api/contas-receber/" + criada.id())).body(criada);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Altera um titulo que ainda nao teve recebimento")
     public ContaReceberResponse alterar(@PathVariable Long id, @RequestBody @Valid ContaReceberRequest req) {
         return service.alterar(id, req);
     }
 
     @GetMapping("/{id}/simulacao")
-    @Operation(summary = "Previa do valor devido numa data, com desconto ou juros aplicados")
     public SimulacaoRecebimentoResponse simular(
             @PathVariable Long id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate data) {
@@ -83,19 +74,16 @@ public class ContaReceberController {
     }
 
     @PostMapping("/{id}/recebimento")
-    @Operation(summary = "Registra o recebimento do titulo (aceita recebimento parcial)")
     public ContaReceberResponse quitar(@PathVariable Long id, @RequestBody @Valid QuitacaoRecebimentoRequest req) {
         return service.quitar(id, req);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Cancela o titulo, mantendo o registro para consulta")
     public ContaReceberResponse cancelar(@PathVariable Long id) {
         return service.cancelar(id);
     }
 
     @PostMapping("/atualizar-vencidas")
-    @Operation(summary = "Marca como VENCIDA todo titulo em aberto com vencimento passado")
     public ResponseEntity<String> atualizarVencidas() {
         int total = service.atualizarVencidas();
         return ResponseEntity.ok(total + " titulo(s) marcado(s) como vencido(s).");

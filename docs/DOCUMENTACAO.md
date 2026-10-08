@@ -85,7 +85,7 @@ As regras marcadas como "extensão" não existem no livro e foram acrescentadas 
 | ID | Requisito | Como foi atendido |
 |---|---|---|
 | RNF01 | A API deve seguir o estilo REST | Recursos no plural, verbos HTTP, códigos de status adequados |
-| RNF02 | A API deve ser documentada e navegável | OpenAPI 3 com interface Swagger em `/swagger-ui.html` |
+| RNF02 | A API deve ser documentada e navegável | Coleção do Postman com exemplos e descrições por requisição |
 | RNF03 | Erros devem ter formato uniforme | `@RestControllerAdvice` com corpo padronizado |
 | RNF04 | Dados de entrada devem ser validados antes do processamento | Bean Validation nos DTOs |
 | RNF05 | O schema do banco deve ser versionado e reproduzível | Migrations Flyway |
@@ -160,7 +160,7 @@ A aplicação é **um único processo**, com **uma única base de dados** e **um
 
 ## 11. Descrição das APIs
 
-A documentação executável está em `/swagger-ui.html` e a especificação OpenAPI em `/v3/api-docs`.
+A documentação executável é a **coleção do Postman** em [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_collection.json): 32 requisições organizadas por domínio, com exemplos de corpo preenchidos e verificação automática da resposta. No Postman, *View Documentation* gera a página navegável da API.
 
 **Convenções adotadas:**
 

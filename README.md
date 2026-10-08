@@ -16,7 +16,6 @@ Esta é a **primeira etapa** do projeto. A segunda etapa decompõe esta aplicaç
 | Spring Boot | 4.1.1 | Versão suportada; o 3.5 chegou ao fim de vida em junho/2026 |
 | MySQL | 8.4 (LTS) | Executado em contêiner Docker |
 | Flyway | — | Versiona o schema do banco |
-| springdoc-openapi | 3.0.3 | Documentação interativa da API |
 | Lombok | — | Reduz código repetitivo de getters e setters |
 
 ---
@@ -56,24 +55,23 @@ mvnw.cmd spring-boot:run
 
 Na primeira execução, o Flyway cria todas as tabelas e carrega os dados de domínio automaticamente. A aplicação sobe em **http://localhost:8080**.
 
-### Passo 3 — Abrir a documentação da API
+### Passo 3 — Conferir que subiu
 
+Abra `http://localhost:8080` no navegador. A resposta é um JSON com o índice dos recursos:
+
+```json
+{
+  "aplicacao": "Sistema de Contas a Pagar e a Receber",
+  "recursos": {
+    "pessoas": "/api/pessoas",
+    "plano de contas": "/api/plano-contas",
+    "contas a pagar": "/api/contas-pagar",
+    ...
+  }
+}
 ```
-http://localhost:8080/swagger-ui.html
-```
 
-Todos os endpoints podem ser testados por essa tela.
-
-### Testando pelo Postman
-
-Importe o arquivo [docs/Projeto-CPR.postman_collection.json](docs/Projeto-CPR.postman_collection.json) no Postman:
-
-1. **Import** → selecione o arquivo
-2. Abra a coleção e use o **Run collection** para executar as 32 requisições em sequência
-
-As requisições estão na ordem correta de execução e guardam sozinhas os identificadores gerados (pessoa, título, despesa), então o fluxo completo roda sem edição manual. Cada requisição verifica o código de resposta esperado, e a pasta *Cenários de Erro* reúne as regras de negócio que devem ser recusadas.
-
-> Execute sobre uma base recém-criada: `docker compose down -v && docker compose up -d`
+A documentação completa da API, com todos os endpoints e exemplos, está na coleção do Postman.
 
 ---
 
@@ -148,7 +146,7 @@ docker compose down -v && docker compose up -d
 | `GET` | `/api/relatorios/resumo` | Posição financeira do período |
 | `GET` | `/api/relatorios/inadimplencia` | Títulos vencidos em aberto |
 
-A lista completa está no Swagger.
+A lista completa das 23 rotas está na coleção do Postman.
 
 ---
 

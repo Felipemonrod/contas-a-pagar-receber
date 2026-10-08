@@ -13,12 +13,8 @@ import com.ifgoianomih.contas_pagar.relatorio.RelatorioDtos.InadimplenciaRespons
 import com.ifgoianomih.contas_pagar.relatorio.RelatorioDtos.ResumoFinanceiroResponse;
 import com.ifgoianomih.contas_pagar.relatorio.RelatorioDtos.TotalPorCategoriaResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
 @RestController
 @RequestMapping("/api/relatorios")
-@Tag(name = "Relatorios", description = "Consultas financeiras consolidadas")
 public class RelatorioController {
 
     private final RelatorioService service;
@@ -28,8 +24,6 @@ public class RelatorioController {
     }
 
     @GetMapping("/resumo")
-    @Operation(summary = "Posicao do periodo: previsto, quitado, em aberto e vencido. "
-            + "Sem datas, usa o mes corrente.")
     public ResumoFinanceiroResponse resumo(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate) {
@@ -37,7 +31,6 @@ public class RelatorioController {
     }
 
     @GetMapping("/por-categoria")
-    @Operation(summary = "Totais agrupados por categoria do plano de contas")
     public List<TotalPorCategoriaResponse> porCategoria(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate) {
@@ -45,7 +38,6 @@ public class RelatorioController {
     }
 
     @GetMapping("/inadimplencia")
-    @Operation(summary = "Titulos vencidos e em aberto nos dois dominios, com dias de atraso")
     public InadimplenciaResponse inadimplencia() {
         return service.inadimplencia();
     }

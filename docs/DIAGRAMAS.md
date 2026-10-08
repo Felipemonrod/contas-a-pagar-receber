@@ -198,7 +198,7 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    CLI[Cliente HTTP<br/>Swagger / Postman]
+    CLI[Cliente HTTP<br/>Postman]
 
     subgraph app["Aplicação Spring Boot — processo único"]
         direction TB
@@ -350,7 +350,7 @@ Mostra os componentes implantáveis da aplicação e as interfaces que cada um o
 ```mermaid
 flowchart TB
     subgraph externo["Fora da aplicação"]
-        NAV[["Cliente HTTP<br/>Swagger · Postman"]]
+        NAV[["Cliente HTTP<br/>Postman"]]
         MYSQL[("MySQL 8.4<br/>contêiner Docker")]
     end
 
