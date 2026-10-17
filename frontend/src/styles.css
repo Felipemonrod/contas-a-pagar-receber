@@ -69,6 +69,12 @@ td > span, .row-select { display: block; width: 100%; padding: 8px 9px; line-hei
 .selected-row td { background: #dbdbdb; border-color: #8c8c8c; box-shadow: inset 1px 1px 1px #00000017; }
 tbody tr:hover td { background: #e4e9ed; }
 tbody .empty-state { height: 80px; padding: 20px; text-align: center; color: #606a73; }
+
+/* Estados das telas ligadas a API: carregando, vazio e erro. */
+.estado-carregando,
+.estado-vazio { margin-top: 18px; padding: 24px; text-align: center; color: #606a73; background: #d4d0c8; border: 2px solid; border-color: #808080 #ffffff #ffffff #808080; }
+.estado-erro { margin-top: 18px; padding: 20px 24px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; background: #d4d0c8; border: 2px solid; border-color: #808080 #ffffff #ffffff #808080; }
+.estado-erro p { margin: 0; color: #850d16; line-height: 20px; max-width: 70ch; }
 .filter-summary { margin-top: 18px; display: flex; align-items: center; gap: 12px; }
 .filter-summary button { border: 0; background: transparent; text-decoration: underline; color: #000080; }
 .home-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; max-width: 1060px; }

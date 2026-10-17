@@ -4,35 +4,87 @@ import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import layouts from './form-layouts.json';
 import { groups, initialDatabase, nextRecord, readDatabase, screens, STORAGE_KEY, type Entity } from './data';
+import { apiFalsaAtual } from './test-utils/apiFalsa';
 
 describe('fluxos do sistema financeiro', () => {
-  it('inclui, edita e persiste um cliente com todos os campos organizados', async () => {
+  it('inclui e edita um cliente pela API, no formato do contrato', async () => {
+    const api = apiFalsaAtual();
     const user = userEvent.setup(); render(<App />);
+    // A tela comeca carregando: a lista vem de GET /api/pessoas?papel=CLIENTE.
+    expect(await screen.findByText('Editora Érica Ltda.')).toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: 'Incluir' }));
     const dialog = screen.getByRole('dialog', { name: 'Cadastro de Cliente' });
     await user.type(within(dialog).getByLabelText(/^Cliente/), 'Cliente de Teste');
+    await user.type(within(dialog).getByLabelText(/^CGC/), '99.999.999/0001-99');
+    await user.type(within(dialog).getByLabelText('Endereço'), 'Rua Nova, 42');
     await user.type(within(dialog).getByLabelText('Cidade'), 'Curitiba');
     await user.selectOptions(within(dialog).getByLabelText('Estado'), 'PR');
     await user.click(within(dialog).getByRole('button', { name: 'Gravar' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(screen.getByText('Cliente de Teste')).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await screen.findByText('Cliente de Teste')).toBeInTheDocument();
+
+    // O adapter traduziu os nomes do livro para os nomes do contrato.
+    expect(api.ultimoCorpo()).toMatchObject({
+      nome: 'Cliente de Teste',
+      documento: '99.999.999/0001-99',
+      papeis: ['CLIENTE'],
+      enderecos: [{ logradouro: 'Rua Nova', numero: '42', cidade: 'Curitiba', uf: 'PR' }],
+    });
+    expect(api.pessoas().some(p => p.nome === 'Cliente de Teste')).toBe(true);
+
     await user.click(screen.getByRole('button', { name: 'Editar' }));
-    const field = within(screen.getByRole('dialog')).getByLabelText(/^Cliente/); await user.clear(field); await user.type(field, 'Cliente Atualizado');
+    const field = within(screen.getByRole('dialog')).getByLabelText(/^Cliente/);
+    await user.clear(field); await user.type(field, 'Cliente Atualizado');
     await user.click(screen.getByRole('button', { name: 'Gravar' }));
-    expect(screen.getByText('Cliente Atualizado')).toBeInTheDocument();
-    expect(readDatabase().clientes.at(-1)?.Cidade).toBe('Curitiba');
-    expect(readDatabase().clientes.at(-1)?.Estado).toBe('PR');
+
+    expect(await screen.findByText('Cliente Atualizado')).toBeInTheDocument();
+    // A edicao foi um PUT, e nao um segundo POST.
+    expect(api.chamadas().some(c => c.metodo === 'PUT')).toBe(true);
+    expect(api.pessoas()).toHaveLength(4);
+  });
+
+  it('mostra a mensagem da API quando a regra de negocio recusa a gravacao', async () => {
+    const user = userEvent.setup(); render(<App />);
+    expect(await screen.findByText('Editora Érica Ltda.')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Incluir' }));
+    const dialog = screen.getByRole('dialog', { name: 'Cadastro de Cliente' });
+    await user.type(within(dialog).getByLabelText(/^Cliente/), 'Documento Repetido');
+    // Documento que a API falsa ja tem: responde 422, como o back-end real.
+    await user.type(within(dialog).getByLabelText(/^CGC/), '11.111.111/0001-11');
+    await user.click(within(dialog).getByRole('button', { name: 'Gravar' }));
+
+    // A janela fica aberta com a mensagem da API, para o usuario corrigir.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Documento ja cadastrado para outra pessoa.',
+    );
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('mostra o estado de erro quando a API esta fora do ar', async () => {
+    vi.spyOn(globalThis, 'fetch').mockRejectedValue(new TypeError('Failed to fetch'));
+    render(<App />);
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      /Nao foi possivel falar com o servidor/,
+    );
+    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeInTheDocument();
   });
 
   it('busca sem distinguir acentos e limpa os resultados', async () => {
     const user = userEvent.setup(); render(<App />);
+    expect(await screen.findByText('Editora Érica Ltda.')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Localizar' }));
     await user.type(screen.getByLabelText('Entre com uma parte do nome'), 'erica');
     await user.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Localizar' }));
-    expect(screen.getByText('Editora Érica Ltda.')).toBeInTheDocument();
+    // A busca vai para a API no parametro nome, e nao filtra no navegador.
+    expect(await screen.findByText('Editora Érica Ltda.')).toBeInTheDocument();
     expect(screen.queryByText('Comercial Goiás')).not.toBeInTheDocument();
+    expect(apiFalsaAtual().chamadas().some(c => c.url.includes('nome=erica'))).toBe(true);
     await user.click(screen.getByRole('button', { name: 'Limpar busca' }));
-    expect(screen.getByText('Comercial Goiás')).toBeInTheDocument();
+    expect(await screen.findByText('Comercial Goiás')).toBeInTheDocument();
   });
 
   it('exige confirmar a exclusão e preserva o registro ao cancelar', async () => {
@@ -48,7 +100,10 @@ describe('fluxos do sistema financeiro', () => {
 
   it.each(Object.keys(layouts) as Entity[])('vincula %s ao formulário e aos campos correspondentes', async entity => {
     window.location.hash = `#/${entity}`; const user = userEvent.setup(); render(<App />);
-    await user.click(screen.getByRole('button', { name: screens[entity].actions[0] }));
+    // Nas telas integradas a barra de acoes fica desabilitada enquanto carrega.
+    const acao = screen.getByRole('button', { name: screens[entity].actions[0] });
+    await waitFor(() => expect(acao).toBeEnabled());
+    await user.click(acao);
     const dialog = screen.getByRole('dialog', { name: screens[entity].modal });
     for (const field of layouts[entity].flatMap(row => row.fields)) expect(within(dialog).getByLabelText(new RegExp(`^${field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?: \\*)?$`))).toBeInTheDocument();
     await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));

@@ -6,7 +6,18 @@ import { Button } from './components';
 const states = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
 const isMoney = (label: string) => /^(Valor|Limite|Desconto$)/.test(label);
 const isDate = (label: string) => /^(Data|Emissão$|Previsão|Validade|Remessa$|Protesto$|Baixa$)/.test(label);
-export function RecordForm({ entity, record, database, onSave, onClose, bankOnly = false }: { entity: Entity; record?: RecordData; database: Database; onSave: (values: Record<string, string>) => void; onClose: () => void; bankOnly?: boolean }) {
+export function RecordForm({ entity, record, database, onSave, onClose, bankOnly = false, mensagemErro = '', salvando = false }: {
+  entity: Entity;
+  record?: RecordData;
+  database: Database;
+  onSave: (values: Record<string, string>) => void;
+  onClose: () => void;
+  bankOnly?: boolean;
+  /** Erro vindo da API, exibido junto com os erros de validacao locais. */
+  mensagemErro?: string;
+  /** Enquanto true, a gravacao esta em andamento e o botao fica desabilitado. */
+  salvando?: boolean;
+}) {
   const prefix = useId();
   const [values, setValues] = useState<Record<string, string>>({ Tipo: 'Duplicata', ...record });
   const [error, setError] = useState('');
@@ -45,13 +56,18 @@ export function RecordForm({ entity, record, database, onSave, onClose, bankOnly
             <label htmlFor={id}>{label}{required && <span className="required-mark" aria-hidden="true"> *</span>}</label>
             {checkbox ? <input id={id} type="checkbox" checked={values[label] === 'Sim'} onChange={e => setValue(e.target.checked ? 'Sim' : 'Não')} /> : choices ?
               <select id={id} value={values[label] || ''} required={required} onChange={e => setValue(e.target.value)}><option value="">Selecione…</option>{[...new Set([...choices, ...(values[label] ? [values[label]] : [])])].map(value => <option key={value}>{value}</option>)}</select> :
-              <input id={id} name={label} required={required} type={isDate(label) ? 'date' : isMoney(label) || label === 'Pagamento (dias)' ? 'number' : label === 'Telefone' ? 'tel' : 'text'} step={isMoney(label) ? '0.01' : undefined} min={isMoney(label) || label === 'Pagamento (dias)' ? '0' : undefined} value={values[label] || ''} onChange={e => setValue(e.target.value)} maxLength={label === 'CEP' ? 9 : undefined} />}
+              <input id={id} name={label} required={required} type={isDate(label) ? 'date' : isMoney(label) || label === 'Pagamento (dias)' ? 'number' : label === 'Telefone' ? 'tel' : 'text'} step={isMoney(label) ? '0.01' : undefined} min={isMoney(label) || label === 'Pagamento (dias)' ? '0' : undefined} value={values[label] || ''} onChange={e => setValue(e.target.value)} maxLength={label === 'CEP' ? 9 : label === 'Ramal' ? 6 : undefined} />}
           </div>;
         })}
       </div>
     </div>)}
-    {error && <p className="form-error" role="alert">{error}</p>}
+    {(error || mensagemErro) && <p className="form-error" role="alert">{error || mensagemErro}</p>}
     </div>
-    <footer className="modal-footer"><Button onClick={onClose} type="button">Cancelar</Button><Button type="submit" primary>{entity === 'clientes' || entity === 'fornecedores' ? 'Gravar' : 'OK'}</Button></footer>
+    <footer className="modal-footer">
+      <Button onClick={onClose} type="button" disabled={salvando}>Cancelar</Button>
+      <Button type="submit" primary disabled={salvando}>
+        {salvando ? 'Gravando…' : entity === 'clientes' || entity === 'fornecedores' ? 'Gravar' : 'OK'}
+      </Button>
+    </footer>
   </form>;
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button, DataTable, Modal, Sidebar } from './components';
 import { RecordForm } from './RecordForm';
+import { PessoasScreen } from './screens/PessoasScreen';
 import { groups, isEntity, nextRecord, normalize, readDatabase, routeFromHash, screens, STORAGE_KEY, type Database, type Entity, type RecordData, type Route } from './data';
 
 type ModalState = { kind: 'new' | 'edit' | 'delete' | 'search' | 'bank'; entity: Entity; recordId?: string } | null;
@@ -139,11 +140,13 @@ export default function App() {
       <main id="main-content" className="workspace">
         <h1 ref={headingRef} tabIndex={-1}>{config?.heading || title}</h1>
         <p className="screen-description">{config?.description || (route === 'inicio' ? 'Selecione uma opção para acessar o sistema.' : 'Visualização e impressão de relatórios do sistema.')}</p>
-        {route === 'inicio' ? <Home /> : route === 'relatorios' ? <Reports database={database} /> : entity && config && <>
+        {route === 'inicio' ? <Home /> : route === 'relatorios' ? <Reports database={database} /> :
+          // Telas integradas a API. As demais seguem no localStorage.
+          route === 'clientes' ? <PessoasScreen entity="clientes" papel="CLIENTE" database={database} onAviso={setNotice} /> :
+          entity && config && <>
           {entity === 'bancos' && <section className="bank-panel"><h2>Bancos</h2><div className="toolbar inset-panel"><Button primary onClick={() => open('bank')}>Incluir Banco</Button></div><DataTable label="Bancos" columns={[{ key: 'Número', label: 'Número', width: 120 }, { key: 'Banco', label: 'Banco', width: 500 }]} rows={allBanks} selectedId={selectedBank} onSelect={setSelectedBank} /><h2 className="section-heading">Agências e Contas Correntes</h2>{selectedBank && <Button className="clear-bank" onClick={() => setSelectedBank(undefined)}>Mostrar todos os bancos</Button>}</section>}
           <div className="toolbar inset-panel" aria-label={`Ações de ${config.heading}`}>
             <div className="toolbar-buttons">{config.actions.map((label, i) => <Button key={label} primary={i === 0} onClick={() => action(label)}>{label}</Button>)}</div>
-            {entity === 'clientes' && <div className="order-control"><label htmlFor="order">Ordenação</label><select id="order" value={order} onChange={e => setOrder(e.target.value)}><option value="registro">Ordem de Registro</option><option value="alfabetica">Ordem Alfabética</option></select></div>}
           </div>
           {filter && <div className="filter-summary">Busca: “{filter}” <button onClick={() => setFilter('')}>Limpar busca</button></div>}
           {entity === 'plano' ? <AccountTree records={currentRows} selected={selectedId} onSelect={id => setSelected(old => ({ ...old, plano: id }))} onEdit={id => open('edit', id)} /> : <DataTable label={config.heading} columns={config.columns} rows={visibleRows} selectedId={selectedId} onSelect={id => setSelected(old => ({ ...old, [entity]: id }))} onEdit={id => open('edit', id)} />}

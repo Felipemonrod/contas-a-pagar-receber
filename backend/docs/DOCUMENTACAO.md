@@ -251,9 +251,9 @@ Resumo: `docker compose up -d` e depois `./mvnw spring-boot:run`. O Flyway cria 
 
 ## 16. Testes Realizados
 
-### Bateria de validação da API
+### Bateria de validação da API (teste externo)
 
-Foi construída uma bateria automatizada que exercita o sistema de fora, pela API, cobrindo **as 13 regras de negócio** e **os requisitos mínimos da seção 7 do enunciado**. São **44 verificações**, todas aprovadas.
+Além dos testes JUnit descritos adiante, foi construída uma bateria que exercita o sistema de fora, pela API, cobrindo **as 13 regras de negócio** e **os requisitos mínimos da seção 7 do enunciado**. São **44 verificações**, todas aprovadas.
 
 - Script: [`docs/evidencias/validar-api.py`](evidencias/validar-api.py)
 - Saída da última execução: [`docs/evidencias/resultado-validacao.txt`](evidencias/resultado-validacao.txt)
@@ -291,9 +291,36 @@ A bateria é repetível — cada execução usa identificadores próprios e não
 
 A coleção [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_collection.json) reproduz os mesmos fluxos de forma interativa, com 30 requisições, incluindo uma pasta dedicada a cenários de erro. Serve para a demonstração em vídeo.
 
+### Testes automatizados em JUnit
+
+**68 testes**, executados pelo build com `mvnw test`. Rodam em **H2 em memória**, sem depender do MySQL estar no ar.
+
+| Classe | Testes | O que verifica |
+|---|---|---|
+| `DescontoPorPontualidadeTest` | 8 | RN05 isolada: antes, no limite e depois da validade; desconto ausente, zerado, negativo e já consumido |
+| `JurosPorAtrasoTest` | 8 | Juros proporcionais (teste parametrizado com 4 faixas de atraso); antes, no dia e depois do vencimento |
+| `CalculadoraEncargosTest` | 5 | O contexto do Strategy somando as políticas, inclusive com uma política nova acrescentada em tempo de teste |
+| `ContaPagarTest` | 7 | Saldo, desconto disponível, condição de quitado, e a RN10 em quitação parcelada |
+| `ContaPagarServiceTest` | 20 | Regras de lançamento e quitação com repositórios simulados (Mockito): RN01, RN04, RN07, RN09, RN11, RN12 |
+| `ContaPagarIntegracaoTest` | 19 | Fluxo completo pela API, do controller ao banco |
+| `ContasPagarApplicationTests` | 1 | Carga do contexto |
+
+**O teste de integração** sobe o contexto inteiro e exercita o fluxo em ordem: cadastrar fornecedor e cliente, consultar o plano de contas, tentar as operações que devem falhar, lançar o título com rateio, simular nas três faixas de data, pagar parcialmente, quitar o restante e conferir que o desconto não se repetiu. Passa por controller, service, repositório, JPA e banco.
+
+**Tipos de teste cobertos**, conforme a seção 9 do enunciado:
+
+| Exigência | Onde |
+|---|---|
+| Testes das regras de negócio | `ContaPagarServiceTest`, testes das políticas |
+| Testes dos controladores e endpoints | `ContaPagarIntegracaoTest` (MockMvc, status 200/201/400/404/422) |
+| Testes de integração com o banco | `ContaPagarIntegracaoTest` (H2 real, JPA) |
+| Testes de situações de erro | 12 cenários de recusa entre service e integração |
+| Testes de entradas inválidas | Campos obrigatórios, valor negativo, datas incoerentes |
+| Testes de operações repetidas | RN07 (quitação dupla), documento e título duplicados |
+
 ### Pendência
 
-> Os testes **unitários e de integração em JUnit** ainda não foram escritos. Eles verificam as regras isoladamente e rodam junto do build (`mvnw test`), o que a bateria externa não substitui. Está planejado para a sequência.
+> Contas a receber e despesas ainda não têm testes unitários próprios. Como contas a receber é espelho de contas a pagar e compartilha as mesmas políticas de encargo, o risco é baixo — mas a cobertura é assimétrica e isso está registrado como limitação conhecida.
 
 ## 17. Dificuldades Encontradas
 
