@@ -1,0 +1,350 @@
+{
+  "clientes": [
+    {
+      "fields": [
+        "Cliente"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "CGC",
+        "Inscrição Estadual"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Endereço"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Cidade",
+        "Estado",
+        "CEP"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Telefone",
+        "Ramal",
+        "Contato"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Internet"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "fornecedores": [
+    {
+      "fields": [
+        "Fornecedor"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "CGC",
+        "Inscrição Estadual"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Endereço"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Cidade",
+        "Estado",
+        "CEP"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Telefone",
+        "Ramal",
+        "Internet"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Pagamento (dias)",
+        "Desconto",
+        "Entrega"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Vendedor"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "bancos": [
+    {
+      "fields": [
+        "Banco",
+        "Agência"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Nome da Agência",
+        "Gerente"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Conta Corrente",
+        "Limite"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Telefone",
+        "Ramal"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "cartorios": [
+    {
+      "fields": [
+        "Nome do Cartório"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Contato",
+        "Telefone"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "plano": [
+    {
+      "fields": [
+        "Conta Superior",
+        "Complemento da Conta"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Nova Conta"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Descrição da Conta"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Consolidado",
+        "Inclusão Contínua"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "lancamentos": [
+    {
+      "fields": [
+        "Data",
+        "Valor"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Conta de Crédito",
+        "Conta de Débito"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Descrição"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "despesas": [
+    {
+      "fields": [
+        "Lançamento",
+        "Previsão de Pagamento"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Valor Previsto"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Descrição"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "pagamentos": [
+    {
+      "fields": [
+        "Nome do Fornecedor"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Número do Título",
+        "Tipo"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Data de Emissão",
+        "Data de Vencimento"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Data de Pagamento",
+        "Validade do Desconto"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Valor do Título",
+        "Valor do Desconto",
+        "Valor do Acréscimo"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "recebimentos": [
+    {
+      "fields": [
+        "Nome do Cliente"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Número do Título",
+        "Tipo"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Data de Emissão",
+        "Data de Vencimento"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Data de Pagamento",
+        "Validade do Desconto"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Valor do Título",
+        "Valor do Desconto",
+        "Valor do Acréscimo"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "cheques": [
+    {
+      "fields": [
+        "Cliente"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Número do Cheque",
+        "Emissão"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Lançamento",
+        "Data para Depósito"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Valor",
+        "Banco"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Agência",
+        "Conta Corrente"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Descrição"
+      ],
+      "separatorAfter": false
+    }
+  ],
+  "remessas": [
+    {
+      "fields": [
+        "Cartório"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Número do Título"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Remessa",
+        "Protesto",
+        "Baixa"
+      ],
+      "separatorAfter": false
+    }
+  ]
+}
