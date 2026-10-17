@@ -139,6 +139,23 @@ Ver [DIAGRAMAS.md](DIAGRAMAS.md), seções 1 e 2.
 
 Ver [DIAGRAMAS.md](DIAGRAMAS.md), seções 3 e 4.
 
+### Classificação do sistema
+
+Pelos modelos de sistemas distribuídos vistos em aula, o sistema adota o **modelo cliente-servidor**: o servidor (aplicação Spring Boot) gerencia os dados e a lógica de negócio e aguarda requisições; os clientes (interface web, Postman ou qualquer consumidor HTTP) iniciam as requisições e cuidam da apresentação. A comunicação é **direta e síncrona**, sobre HTTP.
+
+As características desse modelo valem tanto a favor quanto contra, e a equipe assume as duas:
+
+| | Como se manifesta neste sistema |
+|---|---|
+| **Centralização dos recursos** | Uma base única garante consistência dos dados e simplifica backup, controle de acesso e atualização |
+| **Ponto único de falha** | Se a aplicação ou o MySQL ficam fora do ar, todos os clientes param. Não há redundância |
+| **Gargalo de desempenho** | Todas as requisições disputam o mesmo processo e a mesma conexão de banco |
+| **Escalabilidade limitada** | Só é possível escalar verticalmente, ou replicar a aplicação inteira — não um módulo específico |
+
+São justamente essas três limitações que motivam a segunda etapa. A decomposição em microsserviços não é um exercício gratuito: ela ataca o ponto único de falha e permite escalar só o módulo que precisa.
+
+### Definição formal
+
 A aplicação é **um único processo**, com **uma única base de dados** e **uma base de código centralizada**, atendendo à definição da seção 4 do enunciado.
 
 **Organização em camadas:**
@@ -152,7 +169,7 @@ A aplicação é **um único processo**, com **uma única base de dados** e **um
 | DTOs | Contrato da API, separado do banco | `*Dtos`, `dto/` |
 | Tratamento de exceções | Tradução para códigos HTTP | `shared/exception` |
 | Validações | Bean Validation nos DTOs | `@NotNull`, `@DecimalMin`, … |
-| Configurações | OpenAPI, datasource, Flyway | `shared/OpenApiConfig`, `application.properties` |
+| Configurações | CORS, datasource, Flyway | `shared/CorsConfig`, `application.properties` |
 
 **Decisão estrutural:** os pacotes são organizados **por domínio** e não por camada. Cada pasta de primeiro nível (`pessoa`, `planoconta`, `contapagar`, `contareceber`, `despesa`, `relatorio`) contém suas próprias camadas. Isso tem uma consequência direta na segunda etapa: cada pacote já é um candidato a microsserviço, e a decomposição não exige reorganizar o código arquivo por arquivo.
 
@@ -294,10 +311,53 @@ A coleção [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_col
 
 ---
 
+## 18. Preparação para a Segunda Etapa
+
+Esta seção não é exigida na primeira entrega. Está aqui porque as decisões tomadas agora determinam o que será possível depois, e porque a equipe quer deixar registrado que a decomposição foi pensada desde o início.
+
+### O que o monolito já tem pronto para a decomposição
+
+| Decisão da primeira etapa | Efeito na segunda |
+|---|---|
+| Pacotes por domínio, não por camada | Cada pacote é um candidato a serviço, sem reorganizar arquivo por arquivo |
+| `contapagar` e `contareceber` não se conhecem | Podem virar serviços independentes sem reescrita |
+| Vínculo com pessoa também pelo `documento` | Serve de identificador entre serviços quando a FK deixar de existir |
+| Quitação como ação em sub-recurso (`POST /{id}/pagamento`) | Operação isolada, mais simples de tornar idempotente |
+| Relatórios sem repositório próprio | Já é um consumidor de dados, candidato natural a ser alimentado por eventos |
+
+A única dependência entre domínios é `despesa → contapagar`, e ela é intencional, para não duplicar a RN04. Na decomposição, essa chamada em memória vira chamada de rede e passa a exigir tratamento de falha.
+
+### Divisão prevista e forma de comunicação
+
+| Serviço | Depende de | Comunicação |
+|---|---|---|
+| pessoas | — | — |
+| categorias | — | — |
+| contas-a-pagar | pessoas, categorias | **síncrona** — a validação precisa da resposta antes de gravar |
+| contas-a-receber | pessoas, categorias | **síncrona**, mesma razão |
+| relatorios | eventos dos dois | **assíncrona** — tolera atraso, não pode travar a quitação |
+
+### Riscos da comunicação distribuída e como serão tratados
+
+A comunicação síncrona entre serviços introduz problemas que não existem dentro de um processo. O tratamento previsto segue as boas práticas de comunicação síncrona:
+
+| Risco | Tratamento previsto |
+|---|---|
+| Serviço indisponível | **Timeouts curtos** — a espera indefinida é o que transforma uma falha local em incidente generalizado |
+| Falha em cascata | **Circuit breaker** — após N falhas o circuito abre e responde rápido, em vez de acumular requisições pendentes |
+| Falha transitória de rede | **Retries com jitter e limite**, para não sincronizar tentativas e agravar a sobrecarga |
+| Requisição duplicada pela rede | **Idempotência** — chave na requisição de quitação, de modo que a segunda chamada devolva o mesmo resultado sem registrar outro pagamento |
+| Consulta repetida a dados estáveis | **Réplica local** do nome e documento da pessoa, aceitando **consistência eventual** |
+| Dificuldade de diagnosticar | **Observabilidade** — identificador de correlação propagado entre os serviços, para acompanhar uma requisição que percorre vários deles |
+
+O princípio que orienta todas essas escolhas: em um monolito, uma chamada entre módulos ou funciona ou lança exceção. Entre serviços, ela pode ainda **demorar indefinidamente** ou **ter sido executada sem que a resposta chegue** — e são esses dois casos novos que exigem timeout, circuit breaker e idempotência.
+
+---
+
 ## Itens da Segunda Entrega
 
 - **9.** Arquitetura de microsserviços
 - **10.** Justificativa da divisão dos serviços
 - **13.** Forma de comunicação entre os serviços
-- **18.** Comparação entre as duas arquiteturas
+- **18.** Comparação entre as duas arquiteturas *(a seção 18 acima antecipa o planejamento; a comparação em si só é possível depois de implementar)*
 - **19.** Conclusão da equipe
