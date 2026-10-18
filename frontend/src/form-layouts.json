@@ -8,7 +8,7 @@
     },
     {
       "fields": [
-        "CGC",
+        "CPF / CNPJ",
         "Inscrição Estadual"
       ],
       "separatorAfter": true
@@ -51,7 +51,7 @@
     },
     {
       "fields": [
-        "CGC",
+        "CPF / CNPJ",
         "Inscrição Estadual"
       ],
       "separatorAfter": true
@@ -75,20 +75,6 @@
         "Telefone",
         "Ramal",
         "Internet"
-      ],
-      "separatorAfter": true
-    },
-    {
-      "fields": [
-        "Pagamento (dias)",
-        "Desconto",
-        "Entrega"
-      ],
-      "separatorAfter": false
-    },
-    {
-      "fields": [
-        "Vendedor"
       ],
       "separatorAfter": false
     }
@@ -191,20 +177,20 @@
   "despesas": [
     {
       "fields": [
-        "Lançamento",
-        "Previsão de Pagamento"
+        "Descrição"
       ],
       "separatorAfter": false
     },
     {
       "fields": [
-        "Valor Previsto"
+        "Lançamento"
       ],
       "separatorAfter": true
     },
     {
       "fields": [
-        "Descrição"
+        "Valor Previsto",
+        "Previsão de Pagamento"
       ],
       "separatorAfter": false
     }
@@ -232,16 +218,26 @@
     },
     {
       "fields": [
-        "Data de Pagamento",
-        "Validade do Desconto"
+        "Valor do Título"
       ],
       "separatorAfter": true
     },
     {
       "fields": [
-        "Valor do Título",
         "Valor do Desconto",
-        "Valor do Acréscimo"
+        "Validade do Desconto"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Acréscimo por Dia"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Observação"
       ],
       "separatorAfter": false
     }
@@ -269,16 +265,26 @@
     },
     {
       "fields": [
-        "Data de Pagamento",
-        "Validade do Desconto"
+        "Valor do Título"
       ],
       "separatorAfter": true
     },
     {
       "fields": [
-        "Valor do Título",
         "Valor do Desconto",
-        "Valor do Acréscimo"
+        "Validade do Desconto"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Acréscimo por Dia"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Observação"
       ],
       "separatorAfter": false
     }

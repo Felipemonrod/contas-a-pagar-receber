@@ -1,73 +1,303 @@
+/**
+ * Formulário genérico de cadastro, usado por todas as telas.
+ *
+ * Não existe um formulário por tela: existe um só, que monta os campos a
+ * partir de `form-layouts.json`, onde está o agrupamento extraído do Figma.
+ * Cada entrada desse arquivo descreve as linhas do formulário e os campos de
+ * cada linha, e é daí que saem os separadores pretos do protótipo.
+ *
+ * O componente não conhece a API. Ele devolve os valores digitados em
+ * `onSave`, e quem traduz para o formato da API é o adapter da tela.
+ */
+
 import { useId, useState, type FormEvent } from 'react';
 import formLayouts from './form-layouts.json';
 import { screens, type Database, type Entity, type RecordData } from './data';
 import { Button } from './components';
+import { TIPOS_DE_TITULO } from './adapters/titulos';
 
-const states = ['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'];
-const isMoney = (label: string) => /^(Valor|Limite|Desconto$)/.test(label);
-const isDate = (label: string) => /^(Data|Emissão$|Previsão|Validade|Remessa$|Protesto$|Baixa$)/.test(label);
-export function RecordForm({ entity, record, database, onSave, onClose, bankOnly = false, mensagemErro = '', salvando = false }: {
+/** Unidades da federação, para o campo Estado. */
+const ESTADOS = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+];
+
+/** Bancos que o protótipo já trazia preenchidos. */
+const BANCOS_PADRAO = [
+  '001 - Banco do Brasil',
+  '237 - Banco Bradesco',
+  '104 - Caixa Econômica Federal',
+];
+
+/** Campos que, além do principal, a tela exige. */
+const OBRIGATORIOS = ['Número do Título', 'Número do Cheque', 'Nova Conta'];
+
+/** Campos desenhados como caixa de marcar, e não como campo de texto. */
+const CAIXAS_DE_MARCAR = ['Consolidado', 'Inclusão Contínua'];
+
+/** O rótulo indica um valor em dinheiro? Define o tipo e o passo do campo. */
+const ehDinheiro = (rotulo: string) => /^(Valor|Limite|Desconto$|Acréscimo)/.test(rotulo);
+
+/** O rótulo indica uma data? */
+const ehData = (rotulo: string) =>
+  /^(Data|Emissão$|Previsão|Validade|Remessa$|Protesto$|Baixa$)/.test(rotulo);
+
+export function RecordForm({
+  entity,
+  record,
+  database,
+  onSave,
+  onClose,
+  bankOnly = false,
+  mensagemErro = '',
+  salvando = false,
+  camposSomenteLeitura = [],
+}: {
   entity: Entity;
   record?: RecordData;
   database: Database;
   onSave: (values: Record<string, string>) => void;
   onClose: () => void;
+  /** Modo reduzido do cadastro de banco, com apenas número e nome. */
   bankOnly?: boolean;
-  /** Erro vindo da API, exibido junto com os erros de validacao locais. */
+  /** Erro vindo da API, exibido junto com os erros de validação locais. */
   mensagemErro?: string;
-  /** Enquanto true, a gravacao esta em andamento e o botao fica desabilitado. */
+  /** Enquanto true, a gravação está em andamento e os botões ficam travados. */
   salvando?: boolean;
+  /**
+   * Campos exibidos, mas que o usuário não pode alterar.
+   *
+   * Serve para o caso em que a API aceita o campo no corpo e simplesmente
+   * o ignora: deixá-lo editável faria o usuário acreditar numa alteração
+   * que nunca acontece.
+   */
+  camposSomenteLeitura?: string[];
 }) {
-  const prefix = useId();
-  const [values, setValues] = useState<Record<string, string>>({ Tipo: 'Duplicata', ...record });
+  // `useId` gera um prefixo único por formulário, para que dois formulários
+  // abertos não produzam dois campos com o mesmo id.
+  const prefixo = useId();
+  const [values, setValues] = useState<Record<string, string>>({
+    Tipo: TIPOS_DE_TITULO.DUPLICATA,
+    ...record,
+  });
   const [error, setError] = useState('');
-  const layout = bankOnly ? [{ fields: ['Número', 'Banco'], separatorAfter: false }] : formLayouts[entity];
-  const primary = bankOnly ? 'Banco' : screens[entity].primary;
-  function options(label: string): string[] | null {
-    if (label === 'Estado') return states;
-    if (label === 'Tipo') return ['Duplicata', 'Boleto', 'Nota Fiscal', 'Recibo', 'Outros'];
+
+  const layout = bankOnly
+    ? [{ fields: ['Número', 'Banco'], separatorAfter: false }]
+    : formLayouts[entity];
+  const principal = bankOnly ? 'Banco' : screens[entity].primary;
+
+  /**
+   * Devolve as opções de um campo de escolha, ou `null` quando o campo é de
+   * digitação livre.
+   *
+   * Algumas listas vêm dos outros cadastros (`database`), e é isso que liga
+   * as telas entre si: o fornecedor escolhido num título é um fornecedor
+   * cadastrado, e não um texto digitado à mão.
+   */
+  function opcoes(rotulo: string): string[] | null {
+    if (rotulo === 'Estado') return ESTADOS;
+    // A API aceita apenas estes três tipos (migration V2 do back-end).
+    if (rotulo === 'Tipo') return Object.values(TIPOS_DE_TITULO);
+
+    // No cadastro reduzido de banco, "Banco" é digitado, e não escolhido.
     if (bankOnly) return null;
-    if (label === 'Banco') return [...new Set(['001 - Banco do Brasil', '237 - Banco Bradesco', '104 - Caixa Econômica Federal', ...database.bancos.map(b => b.Banco)])];
-    if (label === 'Cartório') return database.cartorios.map(c => c['Nome do Cartório']);
-    if (label === 'Nome do Fornecedor') return database.fornecedores.map(c => c.Fornecedor);
-    if (label === 'Nome do Cliente' || (label === 'Cliente' && entity === 'cheques')) return database.clientes.map(c => c.Cliente);
-    if (label.startsWith('Conta de ')) return [...new Set([...database.plano.map(c => c['Descrição da Conta']), 'Fornecedores', 'Duplicatas a Pagar'])];
-    if (label === 'Conta Superior') return ['111', '112', '21', '22'];
+
+    if (rotulo === 'Banco') {
+      return [...new Set([...BANCOS_PADRAO, ...database.bancos.map(b => b.Banco)])];
+    }
+    if (rotulo === 'Cartório') return database.cartorios.map(c => c['Nome do Cartório']);
+    if (rotulo === 'Nome do Fornecedor') return database.fornecedores.map(f => f.Fornecedor);
+    if (rotulo === 'Nome do Cliente' || (rotulo === 'Cliente' && entity === 'cheques')) {
+      return database.clientes.map(c => c.Cliente);
+    }
+    if (rotulo.startsWith('Conta de ')) {
+      const contas = database.plano.map(c => c['Descrição da Conta']);
+      return [...new Set([...contas, 'Fornecedores', 'Duplicatas a Pagar'])];
+    }
+    // As contas superiores possiveis sao as que ja existem no plano. A tela
+    // do plano de contas preenche esta lista com o que veio da API.
+    // Na tela de despesas, "Lançamento" é a categoria do plano de contas:
+    // era um número solto no livro, e na API é `planoContaId`.
+    if (rotulo === 'Lançamento') return database.plano.map(c => c['Descrição da Conta']);
+    if (rotulo === 'Conta Superior') return database.plano.map(c => c['Nova Conta']);
+
     return null;
   }
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    if (!values[primary]?.trim()) { setError(`Preencha o campo ${primary}.`); return; }
-    if (values['Conta de Crédito'] && values['Conta de Crédito'] === values['Conta de Débito']) { setError('Escolha contas de crédito e débito diferentes.'); return; }
-    if (values['Data de Emissão'] && values['Data de Vencimento'] && values['Data de Vencimento'] < values['Data de Emissão']) { setError('O vencimento deve ser igual ou posterior à emissão.'); return; }
-    onSave(Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value.trim()])));
-    if (values['Inclusão Contínua'] === 'Sim') setValues({ 'Conta Superior': values['Conta Superior'] || '', 'Inclusão Contínua': 'Sim' });
+
+  /**
+   * Validações feitas aqui, antes de chamar a API.
+   *
+   * São as que não dependem do servidor para serem respondidas: evitam uma
+   * ida à rede para receber de volta um erro previsível. As regras de negócio
+   * continuam sendo do back-end, e as mensagens dele chegam em `mensagemErro`.
+   */
+  function validar(): string {
+    if (!values[principal]?.trim()) return `Preencha o campo ${principal}.`;
+
+    if (values['Conta de Crédito'] && values['Conta de Crédito'] === values['Conta de Débito']) {
+      return 'Escolha contas de crédito e débito diferentes.';
+    }
+
+    const emissao = values['Data de Emissão'];
+    const vencimento = values['Data de Vencimento'];
+    if (emissao && vencimento && vencimento < emissao) {
+      return 'O vencimento deve ser igual ou posterior à emissão.';
+    }
+
+    return '';
   }
-  return <form onSubmit={submit}>
-    <div className="form-body">{layout.map((row, index) => <div className={`form-group ${row.separatorAfter ? 'group-divider' : ''}`} key={index}>
-      <div className="field-row" style={{ gridTemplateColumns: `repeat(${row.fields.length}, minmax(0, 1fr))` }}>
-        {row.fields.map(label => {
-          const id = `${prefix}-${label}`;
-          const choices = options(label);
-          const required = label === primary || ['Número do Título', 'Número do Cheque', 'Nova Conta'].includes(label) || bankOnly && label === 'Número';
-          const setValue = (value: string) => { setValues(v => ({ ...v, [label]: value })); setError(''); };
-          const checkbox = ['Consolidado', 'Inclusão Contínua'].includes(label);
-          return <div className={`field ${checkbox ? 'checkbox-field' : ''}`} key={label}>
-            <label htmlFor={id}>{label}{required && <span className="required-mark" aria-hidden="true"> *</span>}</label>
-            {checkbox ? <input id={id} type="checkbox" checked={values[label] === 'Sim'} onChange={e => setValue(e.target.checked ? 'Sim' : 'Não')} /> : choices ?
-              <select id={id} value={values[label] || ''} required={required} onChange={e => setValue(e.target.value)}><option value="">Selecione…</option>{[...new Set([...choices, ...(values[label] ? [values[label]] : [])])].map(value => <option key={value}>{value}</option>)}</select> :
-              <input id={id} name={label} required={required} type={isDate(label) ? 'date' : isMoney(label) || label === 'Pagamento (dias)' ? 'number' : label === 'Telefone' ? 'tel' : 'text'} step={isMoney(label) ? '0.01' : undefined} min={isMoney(label) || label === 'Pagamento (dias)' ? '0' : undefined} value={values[label] || ''} onChange={e => setValue(e.target.value)} maxLength={label === 'CEP' ? 9 : label === 'Ramal' ? 6 : undefined} />}
-          </div>;
-        })}
+
+  function submit(evento: FormEvent) {
+    evento.preventDefault();
+
+    const problema = validar();
+    if (problema) {
+      setError(problema);
+      return;
+    }
+
+    const limpos = Object.entries(values).map(([chave, valor]) => [chave, valor.trim()]);
+    onSave(Object.fromEntries(limpos));
+
+    // "Inclusão Contínua" mantém a janela aberta para o próximo registro,
+    // preservando só a conta superior, que costuma se repetir.
+    if (values['Inclusão Contínua'] === 'Sim') {
+      setValues({
+        'Conta Superior': values['Conta Superior'] || '',
+        'Inclusão Contínua': 'Sim',
+      });
+    }
+  }
+
+  /** Decide o tipo do `<input>` a partir do rótulo do campo. */
+  function tipoDoCampo(rotulo: string): string {
+    if (ehData(rotulo)) return 'date';
+    if (ehDinheiro(rotulo)) return 'number';
+    if (rotulo === 'Telefone') return 'tel';
+    return 'text';
+  }
+
+  /** Limite de caracteres de alguns campos, por causa do banco do back-end. */
+  function limiteDoCampo(rotulo: string): number | undefined {
+    if (rotulo === 'CEP') return 9;
+    if (rotulo === 'Ramal') return 6;
+    return undefined;
+  }
+
+  /** Desenha um campo, escolhendo entre caixa de marcar, lista e digitação. */
+  function campo(rotulo: string) {
+    const id = `${prefixo}-${rotulo}`;
+    const escolhas = opcoes(rotulo);
+    const obrigatorio =
+      rotulo === principal ||
+      OBRIGATORIOS.includes(rotulo) ||
+      (bankOnly && rotulo === 'Número');
+    const ehCaixa = CAIXAS_DE_MARCAR.includes(rotulo);
+    const travado = camposSomenteLeitura.includes(rotulo);
+
+    /** Guarda o valor e limpa o erro anterior, que deixou de valer. */
+    const guardar = (valor: string) => {
+      setValues(anteriores => ({ ...anteriores, [rotulo]: valor }));
+      setError('');
+    };
+
+    return (
+      <div className={`field ${ehCaixa ? 'checkbox-field' : ''}`} key={rotulo}>
+        <label htmlFor={id}>
+          {rotulo}
+          {obrigatorio && (
+            <span className="required-mark" aria-hidden="true">
+              {' '}
+              *
+            </span>
+          )}
+        </label>
+
+        {ehCaixa && (
+          <input
+            id={id}
+            type="checkbox"
+            checked={values[rotulo] === 'Sim'}
+            onChange={evento => guardar(evento.target.checked ? 'Sim' : 'Não')}
+          />
+        )}
+
+        {!ehCaixa && escolhas && (
+          <select
+            id={id}
+            value={values[rotulo] || ''}
+            required={obrigatorio}
+            disabled={travado}
+            onChange={evento => guardar(evento.target.value)}
+          >
+            <option value="">Selecione…</option>
+            {/* O valor já gravado entra na lista mesmo que não esteja mais
+                entre as opções, para a edição não perdê-lo em silêncio. */}
+            {[...new Set([...escolhas, ...(values[rotulo] ? [values[rotulo]] : [])])].map(
+              valor => (
+                <option key={valor}>{valor}</option>
+              ),
+            )}
+          </select>
+        )}
+
+        {!ehCaixa && !escolhas && (
+          <input
+            id={id}
+            name={rotulo}
+            required={obrigatorio}
+            type={tipoDoCampo(rotulo)}
+            step={ehDinheiro(rotulo) ? '0.01' : undefined}
+            min={ehDinheiro(rotulo) ? '0' : undefined}
+            maxLength={limiteDoCampo(rotulo)}
+            readOnly={travado}
+            value={values[rotulo] || ''}
+            onChange={evento => guardar(evento.target.value)}
+          />
+        )}
       </div>
-    </div>)}
-    {(error || mensagemErro) && <p className="form-error" role="alert">{error || mensagemErro}</p>}
-    </div>
-    <footer className="modal-footer">
-      <Button onClick={onClose} type="button" disabled={salvando}>Cancelar</Button>
-      <Button type="submit" primary disabled={salvando}>
-        {salvando ? 'Gravando…' : entity === 'clientes' || entity === 'fornecedores' ? 'Gravar' : 'OK'}
-      </Button>
-    </footer>
-  </form>;
+    );
+  }
+
+  return (
+    <form onSubmit={submit}>
+      <div className="form-body">
+        {layout.map((linha, indice) => (
+          <div
+            className={`form-group ${linha.separatorAfter ? 'group-divider' : ''}`}
+            key={indice}
+          >
+            {/* Os campos de uma linha dividem a largura em partes iguais. */}
+            <div
+              className="field-row"
+              style={{ gridTemplateColumns: `repeat(${linha.fields.length}, minmax(0, 1fr))` }}
+            >
+              {linha.fields.map(campo)}
+            </div>
+          </div>
+        ))}
+
+        {(error || mensagemErro) && (
+          <p className="form-error" role="alert">
+            {error || mensagemErro}
+          </p>
+        )}
+      </div>
+
+      <footer className="modal-footer">
+        <Button onClick={onClose} type="button" disabled={salvando}>
+          Cancelar
+        </Button>
+        <Button type="submit" primary disabled={salvando}>
+          {salvando
+            ? 'Gravando…'
+            : entity === 'clientes' || entity === 'fornecedores'
+              ? 'Gravar'
+              : 'OK'}
+        </Button>
+      </footer>
+    </form>
+  );
 }

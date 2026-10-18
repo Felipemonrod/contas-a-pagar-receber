@@ -12,7 +12,7 @@ HTMLDialogElement.prototype.close = function () { this.removeAttribute('open'); 
  * Sao os mesmos exemplos do Figma que antes vinham do localStorage, agora no
  * formato da API, para que os testes das telas integradas tenham o que listar.
  */
-const CLIENTES_DE_EXEMPLO: PessoaNova[] = [
+export const CLIENTES_DE_EXEMPLO: PessoaNova[] = [
   {
     nome: 'Editora Érica Ltda.',
     documento: '11.111.111/0001-11',
@@ -42,10 +42,42 @@ const CLIENTES_DE_EXEMPLO: PessoaNova[] = [
   },
 ];
 
+/**
+ * Fornecedores de exemplo. A tela de Pagamentos precisa deles para preencher
+ * o campo de escolha do fornecedor e para trocar o nome pelo `pessoaId`.
+ */
+export const FORNECEDORES_DE_EXEMPLO: PessoaNova[] = [
+  {
+    nome: "Fornecedor Brasil S/A",
+    documento: "44.444.444/0001-44",
+    papeis: ["FORNECEDOR"],
+    telefones: [{ numero: "(62) 0000-0000" }],
+    enderecos: [
+      { logradouro: "Rua das Flores", numero: "123", cidade: "Goiânia", uf: "GO", principal: true },
+    ],
+  },
+  {
+    nome: "Distribuidora Central",
+    documento: "55.555.555/0001-55",
+    papeis: ["FORNECEDOR"],
+    telefones: [],
+    enderecos: [],
+  },
+];
+
+/**
+ * Todas as pessoas de exemplo, na ordem em que recebem id: os tres clientes
+ * (1, 2, 3) e depois os dois fornecedores (4, 5).
+ */
+export const PESSOAS_DE_EXEMPLO: PessoaNova[] = [
+  ...CLIENTES_DE_EXEMPLO,
+  ...FORNECEDORES_DE_EXEMPLO,
+];
+
 beforeEach(() => {
   localStorage.clear();
   window.location.hash = '#/clientes';
   // As telas integradas falam com esta API em memoria, sem back-end no teste.
-  instalarApiFalsa(CLIENTES_DE_EXEMPLO);
+  instalarApiFalsa(PESSOAS_DE_EXEMPLO);
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });

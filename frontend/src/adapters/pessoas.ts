@@ -6,8 +6,18 @@
  *     Cliente: "Greensoft" }  registroParaPessoa()    nome: "Greensoft" }
  *
  * Existe para que as telas, desenhadas a partir do livro, continuem usando
- * "Registro", "Cliente" e "CGC" sem saber que a API usa "id", "nome" e
- * "documento". Toda a conversao de nome de campo e de formato mora aqui.
+ * "Registro" e "Cliente" sem saber que a API usa "id" e "nome". Toda a
+ * conversao de nome de campo e de formato mora aqui.
+ *
+ * O campo do documento e o unico caso em que NAO mantivemos o nome do livro.
+ * La ele se chama "CGC" (Cadastro Geral de Contribuintes), nome que deixou
+ * de existir em 1998, quando foi substituido pelo CNPJ — e o livro e de
+ * 1998, entao o protótipo herdou o termo extinto.
+ *
+ * Na tela o campo se chama "CPF / CNPJ", e nao so "CNPJ", porque na API ele
+ * e um campo unico (`documento`) que aceita os dois: a validacao do
+ * back-end diz "O documento (CNPJ ou CPF) e obrigatorio". Um cliente pessoa
+ * fisica informa CPF no mesmo lugar em que uma empresa informa CNPJ.
  */
 
 import type {
@@ -107,7 +117,8 @@ export function pessoaParaRegistro(pessoa: PessoaApi, papel: Papel): RecordData 
     // "Registro" e o rotulo do livro para o mesmo numero.
     Registro: String(pessoa.id),
     [CAMPO_NOME[papel]]: pessoa.nome,
-    CGC: pessoa.documento,
+    // Na API e um campo so, `documento`, que aceita CPF ou CNPJ.
+    'CPF / CNPJ': pessoa.documento,
     'Inscrição Estadual': pessoa.inscricaoEstadual ?? '',
     Contato: pessoa.contato ?? '',
     // No formulario do livro o campo de e-mail se chama "Internet".
@@ -148,8 +159,21 @@ export function registroParaPessoa(
   /** Le um campo da tela sem espacos em volta. */
   const campo = (nome: string): string => (valores[nome] ?? '').trim();
 
-  /** Converte vazio em `undefined`, porque a API trata ausente e vazio igual. */
-  const opcional = (nome: string): string | undefined => campo(nome) || undefined;
+  /**
+   * Le um campo opcional, distinguindo dois casos que parecem iguais:
+   *
+   *  - o campo existe no formulario e o usuario o deixou vazio -> apaga o
+   *    valor na API (envia `undefined`);
+   *  - o campo nem aparece naquele formulario -> mantem o que ja esta
+   *    gravado, em vez de apagar sem o usuario ter pedido.
+   *
+   * O segundo caso e real: o formulario de Fornecedor, vindo do livro, nao
+   * tem o campo "Contato", mas a pessoa pode ter um contato gravado.
+   */
+  const opcional = (nome: string, atual?: string | null): string | undefined => {
+    if (!(nome in valores)) return atual ?? undefined;
+    return campo(nome) || undefined;
+  };
 
   // Os itens que o formulario do livro nao exibe sao copiados de volta sem
   // alteracao; so o telefone e o endereco exibidos e que o usuario editou.
@@ -213,11 +237,11 @@ export function registroParaPessoa(
 
   return {
     nome: campo(CAMPO_NOME[papel]),
-    documento: campo('CGC'),
+    documento: campo('CPF / CNPJ'),
     papeis: pessoaAtual ? [...new Set([...pessoaAtual.papeis, papel])] : [papel],
-    inscricaoEstadual: opcional('Inscrição Estadual'),
-    email: opcional('Internet'),
-    contato: opcional('Contato'),
+    inscricaoEstadual: opcional('Inscrição Estadual', pessoaAtual?.inscricaoEstadual),
+    email: opcional('Internet', pessoaAtual?.email),
+    contato: opcional('Contato', pessoaAtual?.contato),
     telefones,
     enderecos,
   };

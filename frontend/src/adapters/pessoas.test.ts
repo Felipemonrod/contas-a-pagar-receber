@@ -78,7 +78,7 @@ describe('pessoaParaRegistro', () => {
 
     expect(linha.Registro).toBe('1');
     expect(linha.Cliente).toBe('Greensoft Informatica Ltda');
-    expect(linha.CGC).toBe('33.537.659/0007-11');
+    expect(linha['CPF / CNPJ']).toBe('33.537.659/0007-11');
     expect(linha.Internet).toBe('contato@greensoft.com.br');
     expect(linha.Contato).toBe('Wilson');
   });
@@ -120,7 +120,7 @@ describe('pessoaParaRegistro', () => {
 describe('registroParaPessoa', () => {
   const formularioCompleto = {
     Cliente: 'Editora Erica Ltda.',
-    CGC: '11.222.333/0001-44',
+    'CPF / CNPJ': '11.222.333/0001-44',
     'Inscrição Estadual': '123456',
     Endereço: 'Rua Jarinu, 594',
     Cidade: 'Sao Paulo',
@@ -164,7 +164,7 @@ describe('registroParaPessoa', () => {
   });
 
   it('grava o papel FORNECEDOR e le o campo Fornecedor', () => {
-    const corpo = registroParaPessoa({ Fornecedor: 'Acme S/A', CGC: '1' }, 'FORNECEDOR');
+    const corpo = registroParaPessoa({ Fornecedor: 'Acme S/A', 'CPF / CNPJ': '1' }, 'FORNECEDOR');
 
     expect(corpo.nome).toBe('Acme S/A');
     expect(corpo.papeis).toEqual(['FORNECEDOR']);
@@ -172,7 +172,7 @@ describe('registroParaPessoa', () => {
 
   it('omite endereco incompleto, que a API rejeitaria com 400', () => {
     const corpo = registroParaPessoa(
-      { Cliente: 'Sem Endereco', CGC: '1', Endereço: 'Rua X' },
+      { Cliente: 'Sem Endereco', 'CPF / CNPJ': '1', Endereço: 'Rua X' },
       'CLIENTE',
     );
 
@@ -180,14 +180,14 @@ describe('registroParaPessoa', () => {
   });
 
   it('omite telefone quando o numero nao foi preenchido', () => {
-    const corpo = registroParaPessoa({ Cliente: 'Sem Fone', CGC: '1', Ramal: '9' }, 'CLIENTE');
+    const corpo = registroParaPessoa({ Cliente: 'Sem Fone', 'CPF / CNPJ': '1', Ramal: '9' }, 'CLIENTE');
 
     expect(corpo.telefones).toEqual([]);
   });
 
   it('corta o ramal no limite de 6 caracteres da coluna do banco', () => {
     const corpo = registroParaPessoa(
-      { Cliente: 'A', CGC: '1', Telefone: '(11) 1111-1111', Ramal: '1234567890' },
+      { Cliente: 'A', 'CPF / CNPJ': '1', Telefone: '(11) 1111-1111', Ramal: '1234567890' },
       'CLIENTE',
     );
 
@@ -195,13 +195,13 @@ describe('registroParaPessoa', () => {
   });
 
   it('troca campo vazio por undefined em vez de enviar texto vazio', () => {
-    const corpo = registroParaPessoa({ Cliente: 'A', CGC: '1', Internet: '   ' }, 'CLIENTE');
+    const corpo = registroParaPessoa({ Cliente: 'A', 'CPF / CNPJ': '1', Internet: '   ' }, 'CLIENTE');
 
     expect(corpo.email).toBeUndefined();
   });
 
   it('remove espacos em volta dos valores digitados', () => {
-    const corpo = registroParaPessoa({ Cliente: '  Acme  ', CGC: ' 123 ' }, 'CLIENTE');
+    const corpo = registroParaPessoa({ Cliente: '  Acme  ', 'CPF / CNPJ': ' 123 ' }, 'CLIENTE');
 
     expect(corpo.nome).toBe('Acme');
     expect(corpo.documento).toBe('123');
@@ -227,7 +227,7 @@ describe('o que a tela nao mostra e preservado ao editar', () => {
   /** Formulario preenchido como a tela de clientes o exibiria para Greensoft. */
   const comoNaTela = {
     Cliente: 'Greensoft Informatica Ltda',
-    CGC: '33.537.659/0007-11',
+    'CPF / CNPJ': '33.537.659/0007-11',
     Endereço: 'Av. Paulista, 1439',
     Cidade: 'Sao Paulo',
     Estado: 'SP',
@@ -341,7 +341,7 @@ describe('ordem dos telefones vinda da API', () => {
   it('adiciona o primeiro telefone a uma pessoa que nao tinha nenhum', () => {
     const semTelefone: PessoaApi = { ...pessoaDoContrato, telefones: [] };
     const corpo = registroParaPessoa(
-      { Cliente: 'A', CGC: '1', Telefone: '(62) 1111-2222' },
+      { Cliente: 'A', 'CPF / CNPJ': '1', Telefone: '(62) 1111-2222' },
       'CLIENTE',
       semTelefone,
     );
@@ -349,5 +349,43 @@ describe('ordem dos telefones vinda da API', () => {
     expect(corpo.telefones).toEqual([
       { numero: '(62) 1111-2222', ramal: undefined, tipo: undefined },
     ]);
+  });
+});
+
+describe('campos que o formulario da tela nao tem', () => {
+  it('mantem o contato ao gravar por um formulario sem o campo Contato', () => {
+    // O formulario de Fornecedor, vindo do livro, nao tem "Contato".
+    const corpo = registroParaPessoa(
+      { Fornecedor: 'Greensoft Informatica Ltda', 'CPF / CNPJ': '33.537.659/0007-11' },
+      'FORNECEDOR',
+      pessoaDoContrato,
+    );
+
+    expect(corpo.contato).toBe('Wilson');
+  });
+
+  it('apaga o contato quando o campo existe e o usuario o esvazia', () => {
+    const corpo = registroParaPessoa(
+      { Cliente: 'Greensoft', 'CPF / CNPJ': '1', Contato: '' },
+      'CLIENTE',
+      pessoaDoContrato,
+    );
+
+    expect(corpo.contato).toBeUndefined();
+  });
+
+  it('mantem o e-mail e a inscricao estadual pelo mesmo motivo', () => {
+    const comInscricao: PessoaApi = { ...pessoaDoContrato, inscricaoEstadual: '123456' };
+    const corpo = registroParaPessoa({ Fornecedor: 'A', 'CPF / CNPJ': '1' }, 'FORNECEDOR', comInscricao);
+
+    expect(corpo.email).toBe('contato@greensoft.com.br');
+    expect(corpo.inscricaoEstadual).toBe('123456');
+  });
+
+  it('num cadastro novo, campo ausente continua sendo undefined', () => {
+    const corpo = registroParaPessoa({ Fornecedor: 'Novo', 'CPF / CNPJ': '1' }, 'FORNECEDOR');
+
+    expect(corpo.contato).toBeUndefined();
+    expect(corpo.email).toBeUndefined();
   });
 });

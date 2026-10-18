@@ -34,9 +34,67 @@ node scripts/verify-assets.mjs
 
 ## Dados
 
-Os registros iniciais são exemplos do Figma. As alterações ficam no `localStorage` do navegador, na chave `contas-financeiro-v1`. Não há API, autenticação, conciliação ou integração bancária. Os valores e ações são de demonstração; não executam pagamentos nem enviam títulos a cartórios.
+**Todas as telas que têm endpoint estão integradas à API**, com estados de
+carregando, vazio e erro. Para usá-las, suba o back-end antes (veja abaixo).
 
-A ligação com um servidor pode ser feita substituindo a leitura/gravação em `src/data.ts` e `src/App.tsx` por uma camada de API. A persistência atual pertence apenas ao navegador usado, não é compartilhada entre usuários e pode ser apagada ao limpar seus dados.
+| Tela | Endpoint | O que faz |
+|---|---|---|
+| Clientes | `/api/pessoas?papel=CLIENTE` | lista, busca, cadastra e edita |
+| Fornecedores | `/api/pessoas?papel=FORNECEDOR` | lista, busca, cadastra e edita |
+| Pagamentos | `/api/contas-pagar` | lança, quita e acompanha títulos |
+| Recebimentos | `/api/contas-receber` | lança, recebe e acompanha títulos |
+| Plano de Contas | `/api/plano-contas` | árvore de categorias, cadastro e edição |
+| Despesas | `/api/despesas` | previsões de gasto e geração de título |
+| Relatórios | `/api/relatorios` | posição do período, por categoria e inadimplência |
+
+Duas telas servem dois cadastros cada, porque na API são a mesma coisa:
+
+- **Clientes e Fornecedores** são a mesma `Pessoa`; muda só o papel.
+- **Pagamentos e Recebimentos** são o mesmo título visto dos dois lados do
+  caixa; os endpoints são espelhados.
+
+Em títulos, lançar e quitar são ações separadas, porque são dois endpoints.
+A quitação tem janela própria e mostra antes a prévia do valor devido, vinda
+de `/simulacao`, com desconto ou juros já aplicados na data escolhida.
+
+Em Despesas, "Gerar Título" converte a previsão de gasto num título a pagar,
+com o valor real da fatura.
+
+Cinco telas seguem no `localStorage` do navegador, na chave
+`contas-financeiro-v1`, com exemplos do Figma: Bancos, Cartórios,
+Lançamentos, Cheque Pré-Datado e Remessa. Não é pendência, é escopo: a API
+não tem endpoint para esses assuntos (seção 9 do contrato). Não há
+autenticação, conciliação nem integração bancária; nenhuma ação executa
+pagamento de verdade.
+
+### Subir a API
+
+Em dois terminais, dentro de `backend/`:
+
+```sh
+docker compose up -d
+mvnw.cmd spring-boot:run
+```
+
+A API sobe em `http://localhost:8080`, endereço definido em `BASE_URL`, no
+arquivo `src/api/http.ts`. O CORS já libera as portas 5173 e 3000. Com a API
+fora do ar, a tela de Clientes mostra um aviso com a opção de tentar de novo.
+
+### Como a integração está organizada
+
+```
+Tela (nomes do livro)  <->  Adapter  <->  Cliente HTTP  <->  API
+```
+
+As telas continuam usando os nomes do livro ("Registro", "Cliente") e não
+sabem que a API usa `id` e `nome`. A tradução fica nos adapters.
+
+Uma exceção: o campo do documento, que no livro se chama "CGC", aparece na
+tela como **CPF / CNPJ**. O CGC foi substituído pelo CNPJ em 1998, e o livro
+é dessa época; os dois nomes juntos porque na API é um campo único,
+`documento`, que aceita tanto CPF quanto CNPJ.
+
+Os detalhes e as decisões estão em `docs/RELATORIO-IA.md`.
 
 ## Arquivos
 
@@ -44,7 +102,20 @@ A ligação com um servidor pode ser feita substituindo a leitura/gravação em 
 - `src/components.tsx`: barra lateral, botões, tabelas e diálogo.
 - `src/RecordForm.tsx`: campos e validações dos formulários.
 - `src/form-layouts.json`: agrupamento dos campos extraído do Figma.
-- `src/data.ts`: configuração das telas, exemplos e persistência.
+- `src/data.ts`: configuração das telas, exemplos e persistência local.
+- `src/api/`: tipos do contrato, cliente HTTP e chamadas de `/api/pessoas`.
+- `src/adapters/`: tradução entre o formato da tela e o da API.
+- `src/hooks/useRecurso.ts`: estado de carregando, erro e dados de uma busca.
+- `src/ui/estados.tsx`: avisos de carregando, vazio e erro.
+- `src/screens/PessoasScreen.tsx`: tela de Clientes e Fornecedores.
+- `src/screens/TitulosScreen.tsx`: tela de Pagamentos e Recebimentos.
+- `src/screens/operacoes-de-titulo.ts`: liga cada lado do caixa à sua API.
+- `src/screens/JanelaDeQuitacao.tsx`: quitação com prévia do valor devido.
+- `src/screens/PlanoContasScreen.tsx`: árvore de categorias, por recursão.
+- `src/screens/DespesasScreen.tsx` e `JanelaGerarTitulo.tsx`: despesas previstas.
+- `src/screens/Reports.tsx`: relatórios consolidados da API.
+- `src/test-utils/apiFalsa.ts`: API em memória usada pelos testes.
+- `docs/RELATORIO-IA.md`: prompts, decisões e desafios da integração.
 - `src/styles.css`: tema, efeitos de clique e layout adaptável.
 - `src/assets.json` e `public/assets/`: vetores locais e suas dimensões originais.
 - `src/App.test.tsx`: testes de navegação, cadastro, busca, exclusão, vínculos e relatórios.

@@ -3,7 +3,7 @@
  *
  * Os nomes dos campos aqui sao EXATAMENTE os nomes do JSON da API.
  * Nada e renomeado neste arquivo: a traducao para o vocabulario das telas
- * (que vem do livro: "Registro", "Cliente", "CGC") acontece em `src/adapters/`.
+ * (que vem do livro: "Registro", "Cliente") acontece em `src/adapters/`.
  */
 
 /**
@@ -92,4 +92,289 @@ export type PessoaNova = {
   contato?: string;
   telefones: TelefoneNovo[];
   enderecos: EnderecoNovo[];
+};
+
+// ---------------------------------------------------------------------------
+// Contas a pagar - secao 3 do contrato
+// ---------------------------------------------------------------------------
+
+/** Tipos de titulo aceitos pela API (migration V2). */
+export type TipoTitulo = 'DUPLICATA' | 'NOTA_PROMISSORIA' | 'OUTROS';
+
+/** Formas de pagamento aceitas pela API (migration V2). */
+export type FormaPagamento =
+  | 'DINHEIRO'
+  | 'PIX'
+  | 'BOLETO'
+  | 'TRANSFERENCIA'
+  | 'CHEQUE'
+  | 'CARTAO';
+
+/**
+ * Situacao de um titulo. `PAGA` vale para contas a pagar e `RECEBIDA` para
+ * contas a receber; as demais servem para as duas.
+ */
+export type Situacao = 'ABERTA' | 'PARCIAL' | 'PAGA' | 'RECEBIDA' | 'VENCIDA' | 'CANCELADA';
+
+/** Parcela do valor do titulo atribuida a uma categoria do plano de contas. */
+export type RateioApi = {
+  planoContaId: number;
+  categoria: string;
+  valor: number;
+};
+
+/** Um pagamento ja registrado no titulo. */
+export type PagamentoApi = {
+  id: number;
+  dataPagamento: string;
+  formaPagamento: FormaPagamento;
+  valorPago: number;
+  descontoAplicado: number;
+  acrescimoAplicado: number;
+};
+
+/** Conta a pagar como a API devolve. */
+export type ContaPagarApi = {
+  id: number;
+  numeroTitulo: string;
+  pessoaId: number;
+  pessoaNome: string;
+  tipoTitulo: TipoTitulo;
+  situacao: Situacao;
+  valor: number;
+  totalPago: number;
+  saldoDevedor: number;
+  emissao: string;
+  vencimento: string;
+  desconto: number | null;
+  validadeDesconto: string | null;
+  /** Acrescimo POR DIA de atraso, e nao o acrescimo total. */
+  acrescimoDia: number | null;
+  observacao: string | null;
+  rateios: RateioApi[];
+  pagamentos: PagamentoApi[];
+};
+
+/**
+ * Corpo de POST e PUT de /api/contas-pagar.
+ * `numeroTitulo` tem no maximo 20 caracteres e e unico no sistema.
+ * A pessoa precisa ter o papel FORNECEDOR (regra RN04).
+ */
+export type ContaPagarNova = {
+  numeroTitulo: string;
+  pessoaId: number;
+  tipoTitulo: TipoTitulo;
+  valor: number;
+  emissao: string;
+  vencimento: string;
+  desconto?: number;
+  validadeDesconto?: string;
+  acrescimoDia?: number;
+  observacao?: string;
+  /**
+   * Rateio entre categorias. O PUT SUBSTITUI a lista inteira: omitir aqui
+   * apaga os rateios que o titulo ja tinha. Se vier preenchida, a soma
+   * precisa ser igual a `valor` (regra RN12).
+   */
+  rateios?: RateioNovo[];
+};
+
+/** Uma parcela do rateio num corpo de requisicao: ainda sem a categoria lida. */
+export type RateioNovo = {
+  planoContaId: number;
+  valor: number;
+};
+
+/**
+ * Corpo de POST /api/contas-pagar/{id}/pagamento.
+ * `valorPago` e opcional: omitido, a API cobra o valor devido integral,
+ * ja com o desconto ou os juros da data.
+ */
+export type QuitacaoNova = {
+  dataPagamento: string;
+  formaPagamento: FormaPagamento;
+  valorPago?: number;
+  observacao?: string;
+};
+
+/** Previa do valor devido numa data. Nao grava nada. */
+export type SimulacaoApi = {
+  dataSimulada: string;
+  valorOriginal: number;
+  descontoAplicado: number;
+  acrescimoAplicado: number;
+  valorDevido: number;
+};
+
+// ---------------------------------------------------------------------------
+// Contas a receber - secao 4 do contrato
+// ---------------------------------------------------------------------------
+
+/**
+ * Espelho de ContaPagarApi. As diferencas sao so de nome:
+ * `totalRecebido` no lugar de `totalPago`, `recebimentos` no lugar de
+ * `pagamentos`, e a situacao final e RECEBIDA em vez de PAGA.
+ */
+export type RecebimentoApi = {
+  id: number;
+  dataRecebimento: string;
+  formaPagamento: FormaPagamento;
+  valorRecebido: number;
+  descontoAplicado: number;
+  acrescimoAplicado: number;
+};
+
+export type ContaReceberApi = {
+  id: number;
+  numeroTitulo: string;
+  pessoaId: number;
+  pessoaNome: string;
+  tipoTitulo: TipoTitulo;
+  situacao: Situacao;
+  valor: number;
+  totalRecebido: number;
+  saldoDevedor: number;
+  emissao: string;
+  vencimento: string;
+  desconto: number | null;
+  validadeDesconto: string | null;
+  acrescimoDia: number | null;
+  observacao: string | null;
+  rateios: RateioApi[];
+  recebimentos: RecebimentoApi[];
+};
+
+/** Corpo de POST e PUT de /api/contas-receber. Exige papel CLIENTE (RN04). */
+export type ContaReceberNova = ContaPagarNova;
+
+/** Corpo de POST /api/contas-receber/{id}/recebimento. */
+export type QuitacaoRecebimentoNova = {
+  dataRecebimento: string;
+  formaPagamento: FormaPagamento;
+  valorRecebido?: number;
+  observacao?: string;
+};
+
+// ---------------------------------------------------------------------------
+// Plano de contas - secao 2 do contrato
+// ---------------------------------------------------------------------------
+
+/**
+ * Categoria financeira. Conta consolidada agrupa outras e NAO aceita
+ * lancamento (regra RN01); conta analitica aceita.
+ *
+ * O tipo e recursivo: cada conta traz suas subcontas, formando a arvore.
+ */
+export type PlanoContaApi = {
+  id: number;
+  codigo: string;
+  descricao: string;
+  consolidada: boolean;
+  codigoSuperior: string | null;
+  subcontas: PlanoContaApi[];
+};
+
+/** Versao plana, devolvida por /analiticas, para preencher combos. */
+export type PlanoContaItemApi = {
+  id: number;
+  codigo: string;
+  descricao: string;
+  consolidada: boolean;
+};
+
+/** Corpo de POST e PUT de /api/plano-contas. */
+export type PlanoContaNovo = {
+  codigo: string;
+  descricao: string;
+  codigoSuperior?: string;
+  consolidada: boolean;
+};
+
+// ---------------------------------------------------------------------------
+// Despesas - secao 5 do contrato
+// ---------------------------------------------------------------------------
+
+/**
+ * Previsao de gasto que depois vira titulo a pagar.
+ * Depois de convertida, `realizada` fica verdadeira e `contaPagarId` e
+ * `numeroTitulo` apontam para o titulo gerado.
+ */
+export type DespesaApi = {
+  id: number;
+  planoContaId: number;
+  categoria: string;
+  descricao: string;
+  valorPrevisto: number;
+  dataLancamento: string;
+  previsaoPagamento: string;
+  realizada: boolean;
+  contaPagarId: number | null;
+  numeroTitulo: string | null;
+};
+
+/** Corpo de POST e PUT de /api/despesas. */
+export type DespesaNova = {
+  planoContaId: number;
+  descricao: string;
+  valorPrevisto: number;
+  previsaoPagamento: string;
+};
+
+/** Corpo de POST /api/despesas/{id}/gerar-titulo. */
+export type GerarTituloNovo = {
+  numeroTitulo: string;
+  pessoaId: number;
+  valor: number;
+  emissao: string;
+  vencimento: string;
+  tipoTitulo?: TipoTitulo;
+};
+
+// ---------------------------------------------------------------------------
+// Relatorios - secao 6 do contrato
+// ---------------------------------------------------------------------------
+
+/** Posicao de um lado do caixa (a pagar ou a receber) no periodo. */
+export type PosicaoApi = {
+  quantidadeTitulos: number;
+  valorTotal: number;
+  valorQuitado: number;
+  saldoEmAberto: number;
+  quantidadeVencidos: number;
+  valorVencido: number;
+};
+
+/** Resumo financeiro do periodo: o que entra, o que sai e o que sobra. */
+export type ResumoApi = {
+  de: string;
+  ate: string;
+  contasAPagar: PosicaoApi;
+  contasAReceber: PosicaoApi;
+  saldoProjetado: number;
+  saldoRealizado: number;
+};
+
+/** Totais agrupados por categoria do plano de contas. */
+export type TotalPorCategoriaApi = {
+  codigo: string;
+  descricao: string;
+  totalAPagar: number;
+  totalAReceber: number;
+};
+
+/** Titulo vencido e ainda em aberto. */
+export type TituloVencidoApi = {
+  origem: 'CONTA_A_PAGAR' | 'CONTA_A_RECEBER';
+  numeroTitulo: string;
+  pessoa: string;
+  vencimento: string;
+  diasAtraso: number;
+  saldoDevedor: number;
+};
+
+export type InadimplenciaApi = {
+  posicaoEm: string;
+  totalAPagarVencido: number;
+  totalAReceberVencido: number;
+  titulos: TituloVencidoApi[];
 };

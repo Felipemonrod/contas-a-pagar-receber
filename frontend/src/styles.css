@@ -160,3 +160,42 @@ tbody .empty-state { height: 80px; padding: 20px; text-align: center; color: #60
   .report-paper { border: 0; box-shadow: none; margin: 0; padding: 0; overflow: visible; }
   .report-paper table { font-size: 9pt; }
 }
+
+/* Janela de quitacao: resumo do titulo e previa vinda da API. */
+.resumo-titulo { margin: 0 0 4px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 18px; }
+.resumo-titulo div { display: flex; flex-direction: column; gap: 2px; }
+.resumo-titulo dt { font-size: 12px; color: #606a73; }
+.resumo-titulo dd { margin: 0; font-weight: 600; }
+.previa-quitacao { margin-top: 4px; padding: 14px 16px; background: #d4d0c8; border: 2px solid; border-color: #808080 #ffffff #ffffff #808080; }
+.previa-quitacao h3 { margin: 0 0 10px; font-size: 13px; color: #000080; }
+.previa-quitacao p { margin: 0; }
+.previa-quitacao dl { margin: 0; display: grid; gap: 6px; }
+.previa-quitacao dl div { display: flex; justify-content: space-between; gap: 16px; }
+.previa-quitacao dt { color: #606a73; }
+.previa-quitacao dd { margin: 0; }
+.previa-total { padding-top: 6px; border-top: 1px solid #808080; font-weight: 700; }
+.previa-total dt { color: #000080; }
+
+/* Plano de contas: marca as contas que nao recebem lancamento (RN01). */
+.marca-consolidada { margin-left: 10px; padding: 1px 6px; font-size: 11px; color: #606a73; background: #e8e5e0; border: 1px solid #a9a39a; }
+.account-tree .tree-branch,
+.account-tree .tree-leaf { width: 100%; text-align: left; }
+
+/* Relatórios: painéis de posição financeira vindos de /api/relatorios. */
+.report-periodo { margin: 0 0 18px; color: #606a73; }
+.posicao-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.posicao-card { padding: 14px 16px; background: #f3f1ee; border: 1px solid #a9a39a; }
+.posicao-card h3 { margin: 0 0 10px; font-size: 13px; color: #000080; }
+.posicao-card dl { margin: 0; display: grid; gap: 6px; }
+.posicao-card dl div { display: flex; justify-content: space-between; gap: 16px; }
+.posicao-card dt { color: #606a73; }
+.posicao-card dd { margin: 0; font-variant-numeric: tabular-nums; }
+.saldos { margin: 18px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.saldos div { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; background: #d4d0c8; border: 2px solid; border-color: #808080 #ffffff #ffffff #808080; }
+.saldos dt { font-weight: 700; color: #000080; }
+.saldos dd { margin: 0; font-weight: 700; }
+.valor-negativo, .valor-vencido dd { color: #850d16; }
+.report-paper .section-heading { margin-top: 26px; }
+@media (max-width: 760px) {
+  .posicao-grid, .saldos { grid-template-columns: 1fr; }
+}
