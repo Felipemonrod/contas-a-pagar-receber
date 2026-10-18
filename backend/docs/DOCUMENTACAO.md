@@ -251,46 +251,6 @@ Resumo: `docker compose up -d` e depois `./mvnw spring-boot:run`. O Flyway cria 
 
 ## 16. Testes Realizados
 
-### Bateria de validação da API (teste externo)
-
-Além dos testes JUnit descritos adiante, foi construída uma bateria que exercita o sistema de fora, pela API, cobrindo **as 13 regras de negócio** e **os requisitos mínimos da seção 7 do enunciado**. São **44 verificações**, todas aprovadas.
-
-- Script: [`docs/evidencias/validar-api.py`](evidencias/validar-api.py)
-- Saída da última execução: [`docs/evidencias/resultado-validacao.txt`](evidencias/resultado-validacao.txt)
-- Execução: `python docs/evidencias/validar-api.py` com a aplicação no ar
-
-A bateria é repetível — cada execução usa identificadores próprios e não exige recriar a base.
-
-### Cenários cobertos
-
-| Grupo | Cenários | Resultado |
-|---|---|---|
-| CRUD de pessoas | Cadastro, consulta e alteração | 3/3 |
-| Relacionamentos | N:N de papéis, 1:N de telefones e endereços | 3/3 |
-| RN01 — conta consolidada | Rateio em conta consolidada recusado | 1/1 |
-| RN02 — hierarquia | Subconta sob analítica recusada; sob consolidada aceita; código duplicado recusado | 3/3 |
-| RN03 — despesa vira título | Previsão criada; convertida com valor real; conversão dupla recusada; RN04 herdada | 4/4 |
-| RN04 — papel exigido | Conta a pagar sem fornecedor e a receber sem cliente, ambas recusadas | 2/2 |
-| RN05 — desconto e juros | Dentro da validade, após a validade, e após o vencimento | 3/3 |
-| RN06 — tipo de título | Tipo inexistente recusado | 1/1 |
-| RN07 — quitação é registro | Quitação dupla recusada; histórico preservado | 2/2 |
-| RN08 — valor efetivo | 1000 − 50 de desconto = 950 pagos | 1/1 |
-| RN09 — quitação parcial | Situação PARCIAL com saldo correto | 1/1 |
-| RN10 — desconto único | Desconto não repetido em quitação parcelada | 1/1 |
-| RN11 — título com pagamento | Alteração e cancelamento recusados | 2/2 |
-| RN12 — rateio fecha | Rateio divergente do valor recusado | 1/1 |
-| RN13 — exclusão lógica | Pessoa inativada e ainda consultável | 2/2 |
-| Contas a receber | Lançamento e recebimento integral | 2/2 |
-| Consultas | Por período, e por período com situação | 2/2 |
-| Relatórios | Resumo, por categoria e inadimplência | 3/3 |
-| Tratamento de erros | 400 com lista de campos, 404, 422 duplicado, 422 datas incoerentes | 4/4 |
-| Lançamento e situação | Título com rateio N:N; situação inicial ABERTA; quitação integral | 3/3 |
-| **Total** | | **44/44** |
-
-### Coleção do Postman
-
-A coleção [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_collection.json) reproduz os mesmos fluxos de forma interativa, com 30 requisições, incluindo uma pasta dedicada a cenários de erro. Serve para a demonstração em vídeo.
-
 ### Testes automatizados em JUnit
 
 **68 testes**, executados pelo build com `mvnw test`. Rodam em **H2 em memória**, sem depender do MySQL estar no ar.

@@ -195,7 +195,6 @@ A organização é **por domínio, e não por camada**. Cada pasta de primeiro n
 - [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) — descrição do problema, regras de negócio, requisitos e arquitetura
 - [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md) — os seis diagramas exigidos: classes, componentes, pacotes, casos de uso, sequência e DER
 - [docs/Projeto-CPR.postman_collection.json](docs/Projeto-CPR.postman_collection.json) — coleção do Postman: 32 requisições em ordem de execução, com verificação automática de cada resposta
-- [docs/evidencias/](docs/evidencias/) — bateria de validação da API: 44 verificações cobrindo todas as regras de negócio
 - `testar.bat` — bateria de 38 verificações pelo prompt do Windows, usando apenas `curl` (requer a aplicação no ar)
 
 ---

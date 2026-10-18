@@ -47,7 +47,6 @@ Sobe em `http://localhost:5173`. O CORS do back-end já está liberado para essa
 | [backend/docs/DOCUMENTACAO.md](backend/docs/DOCUMENTACAO.md) | Problema, regras, requisitos, arquitetura, persistência |
 | [backend/docs/DIAGRAMAS.md](backend/docs/DIAGRAMAS.md) | Classes, componentes, pacotes, casos de uso, sequência, DER |
 | [backend/docs/PADROES-DE-PROJETO.md](backend/docs/PADROES-DE-PROJETO.md) | Padrões usados, e os descartados com justificativa |
-| [backend/docs/evidencias/](backend/docs/evidencias/) | Bateria de validação da API |
 | [backend/README.md](backend/README.md) | Instruções detalhadas do back-end |
 
 ---
