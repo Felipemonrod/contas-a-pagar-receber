@@ -53,3 +53,27 @@ INSERT INTO plano_conta (id, codigo, descricao, superior_id, consolidada) VALUES
 -- O Hibernate gerou a chave como IDENTITY; depois dos inserts manuais a
 -- sequencia precisa continuar de onde paramos.
 ALTER TABLE plano_conta ALTER COLUMN id RESTART WITH 100;
+
+-- Cadastro bancario minimo para os testes (livro, cap. 9)
+INSERT INTO banco (id, codigo, nome) VALUES
+    (1, '001', 'Banco do Brasil S/A'),
+    (2, '341', 'Banco Itau S/A');
+
+-- criado_em e NOT NULL e o schema gerado pelo Hibernate nao tem DEFAULT,
+-- entao precisa vir no INSERT.
+INSERT INTO agencia (id, banco_id, numero, nome, gerente, criado_em) VALUES
+    (1, 1, '1234', 'Agencia Centro', 'Carlos Lima', CURRENT_TIMESTAMP),
+    (2, 2, '5678', 'Agencia Jabaquara', 'Ana Souza', CURRENT_TIMESTAMP);
+
+INSERT INTO conta_corrente (id, agencia_id, numero, tipo, limite, ativa) VALUES
+    (1, 1, '56789-0', 'CORRENTE', 5000.00, TRUE),
+    (2, 2, '12121-2', 'CORRENTE', 0.00, TRUE);
+
+INSERT INTO cartorio (id, nome, contato, telefone) VALUES
+    (1, '1. Cartorio de Titulos', 'Jorge', '(11) 5585-4975'),
+    (2, '3. Cartorio de Protesto', 'Wilson', '(11) 5584-2545');
+
+ALTER TABLE banco          ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE agencia        ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE conta_corrente ALTER COLUMN id RESTART WITH 100;
+ALTER TABLE cartorio       ALTER COLUMN id RESTART WITH 100;

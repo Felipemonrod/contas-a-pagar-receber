@@ -316,7 +316,89 @@ Todos aceitam `?de=&ate=`. Sem datas, usam o mês corrente.
 
 ---
 
-## 7. Situações possíveis
+## 7. Cadastro bancário (livro, cap. 9)
+
+Cadeia de três níveis: um banco tem várias agências, uma agência tem várias contas.
+
+| Método | Rota | Observação |
+|---|---|---|
+| GET | `/api/bancos` | filtro `?nome=`; traz as agências e contas aninhadas |
+| GET | `/api/bancos/selecao` | lista plana, para combos |
+| GET POST | `/api/bancos` · `/api/bancos/{id}` | PUT e DELETE também; DELETE falha se tiver agências |
+| GET POST | `/api/agencias` | filtro `?bancoId=` |
+| PUT DELETE | `/api/agencias/{id}` | DELETE falha se tiver contas |
+| GET POST | `/api/contas-correntes` | filtro `?agenciaId=` |
+| GET | `/api/contas-correntes/ativas` | para combos |
+| PUT DELETE | `/api/contas-correntes/{id}` | **DELETE desativa**, não exclui — cheques dependem da conta |
+
+**POST banco:** `{ "codigo": "341", "nome": "Banco Itau S/A" }` — código único, até 4 caracteres.
+
+**POST agência:** `{ "bancoId": 1, "numero": "1234", "nome": "Agencia Jabaquara", "gerente": "...", "telefone": "...", "ramal": "...", "fax": "...", "email": "...", "endereco": "..." }`
+O número é único **dentro do banco**, não globalmente.
+
+**POST conta corrente:** `{ "agenciaId": 1, "numero": "56789-0", "tipo": "CORRENTE", "limite": 5000.00 }`
+A resposta traz `identificacao` pronta para exibir: `"341 / 1234 / 56789-0"`.
+
+---
+
+## 8. Cartórios e remessa para protesto (livro, cap. 10 e 17)
+
+| Método | Rota | Observação |
+|---|---|---|
+| GET POST | `/api/cartorios` | PUT e DELETE em `/{id}`; DELETE falha se tiver remessas |
+| GET | `/api/remessas-cartorio` | filtros `?cartorioId=` e `?emAberto=true` |
+| POST | `/api/remessas-cartorio` | envia título a protesto |
+| POST | `/api/remessas-cartorio/{id}/protesto` | registra o protesto |
+| POST | `/api/remessas-cartorio/{id}/baixa` | baixa o protesto |
+
+**POST remessa:** `{ "cartorioId": 1, "contaReceberId": 3, "dataRemessa": "2026-10-01", "observacao": null }`
+`dataRemessa` é opcional — sem ela, usa hoje.
+
+**RN09 aplicada:** só vai a protesto título **vencido** e **não quitado**. Tentar com título a vencer, quitado ou cancelado devolve **422**. Um título só pode estar em uma remessa.
+
+A `situacao` da remessa é derivada das datas: `ENVIADA` → `PROTESTADA` → `BAIXADA`.
+
+---
+
+## 9. Lançamento contábil (livro, cap. 12)
+
+Partida dobrada: toda movimentação sai de uma conta e entra em outra.
+
+| Método | Rota | Observação |
+|---|---|---|
+| GET | `/api/lancamentos` | filtros `?de=&ate=` e `?status=` |
+| GET | `/api/lancamentos/por-conta/{planoContaId}` | extrato da conta, dos dois lados |
+| GET POST | `/api/lancamentos` · `/{id}` | |
+| DELETE | `/api/lancamentos/{id}` | **estorna**, não apaga; devolve 200 com `status: ESTORNADO` |
+
+**POST:** `{ "contaCreditoId": 5, "contaDebitoId": 8, "valor": 511.45, "descricao": "Pagamento a fornecedor", "data": "2026-10-18" }`
+
+**Regras:** crédito e débito precisam ser contas **diferentes** (422), e ambas precisam ser **analíticas** — conta consolidada não aceita lançamento (422, RN01).
+
+---
+
+## 10. Cheque pré-datado (livro, cap. 16)
+
+| Método | Rota | Observação |
+|---|---|---|
+| GET | `/api/cheques` | filtros `?situacao=`, `?pessoaId=`, `?de=&ate=` (por depósito) |
+| GET | `/api/cheques/a-depositar` | em carteira com data de depósito já vencida |
+| GET POST | `/api/cheques` · `/{id}` | PUT só enquanto `EM_CARTEIRA` |
+| POST | `/api/cheques/{id}/situacao` | move no ciclo |
+| DELETE | `/api/cheques/{id}` | só enquanto `EM_CARTEIRA` |
+
+**POST:** `{ "numeroCheque": "123456", "pessoaId": 1, "contaCorrenteId": 1, "emissao": "2026-10-01", "deposito": "2026-11-15", "valor": 1200.00, "contaReceberId": null, "descricao": "..." }`
+
+`contaReceberId` é opcional — vincula o cheque ao título que ele garante.
+
+**Ciclo:** `EM_CARTEIRA` → `DEPOSITADO` → `COMPENSADO` ou `DEVOLVIDO`.
+Cheque **compensado não muda mais** de situação (422). O emitente precisa ter o papel `CLIENTE`. O número é único por conta corrente.
+
+A resposta traz `vencido: true` quando o cheque segue em carteira com a data de depósito já passada.
+
+---
+
+## 11. Situações possíveis
 
 `ABERTA` · `PARCIAL` · `PAGA` · `RECEBIDA` · `VENCIDA` · `CANCELADA`
 
@@ -341,16 +423,19 @@ As mensagens de erro já vêm em português e legíveis — podem ser exibidas d
 
 ---
 
-## 9. O que NÃO existe na API
+## 12. Cobertura do livro
 
-Estes conceitos estão no livro de referência mas **não foram implementados**:
+**As 13 tabelas do livro estão implementadas.** O sistema cobre os capítulos 7 a 18.
 
-- Bancos, agências e contas correntes
-- Cartórios e remessa de títulos para protesto
-- Cheque pré-datado
-- Lançamento contábil por partida dobrada
+Diferenças deliberadas em relação ao original, todas documentadas:
 
-Telas sobre esses temas precisam de outra fonte de dados.
+| No livro | Aqui | Por quê |
+|---|---|---|
+| Cliente.db e Fornecedor.db separados | `pessoa` com papel N:N | As estruturas eram quase idênticas |
+| Agência tinha o número como chave | Chave artificial, único por banco | Permite mesmo número em bancos diferentes |
+| Cheque guardava banco, agência e conta soltos | Aponta para `conta_corrente` | Impede cheque apontar para conta de outra agência |
+| Remessa referenciava o título por texto | Chave estrangeira | Impede remessa de título inexistente |
+| Situação derivada das datas | Dado explícito | Exigência do enunciado |
 
 ---
 
