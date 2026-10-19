@@ -1,3 +1,8 @@
+# O nome do projeto fica fixo aqui. Sem isto o Docker usa o nome da
+# pasta, e renomear o diretorio faz 'docker compose down -v' apontar
+# para outro volume - o banco antigo fica orfao e os dados nao somem.
+name: contas-a-pagar-receber
+
 services:
   mysql:
     image: mysql:8.4

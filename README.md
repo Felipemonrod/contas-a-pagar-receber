@@ -47,6 +47,9 @@ Sobe em `http://localhost:5173`. O CORS do back-end já está liberado para essa
 | [backend/docs/DOCUMENTACAO.md](backend/docs/DOCUMENTACAO.md) | Problema, regras, requisitos, arquitetura, persistência |
 | [backend/docs/DIAGRAMAS.md](backend/docs/DIAGRAMAS.md) | Classes, componentes, pacotes, casos de uso, sequência, DER |
 | [backend/docs/PADROES-DE-PROJETO.md](backend/docs/PADROES-DE-PROJETO.md) | Padrões usados, e os descartados com justificativa |
+| [backend/docs/evidencias/testes.md](backend/docs/evidencias/testes.md) | Evidências dos testes executados |
+| [frontend/docs/RELATORIO-IA.md](frontend/docs/RELATORIO-IA.md) | Registro do uso de IA no front-end |
+| [frontend/docs/relatorio/RELATORIO.pdf](frontend/docs/relatorio/RELATORIO.pdf) | Relatório do trabalho de front-end |
 | [backend/README.md](backend/README.md) | Instruções detalhadas do back-end |
 
 ---

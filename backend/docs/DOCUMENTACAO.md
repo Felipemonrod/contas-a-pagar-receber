@@ -279,6 +279,8 @@ Resumo: `docker compose up -d` e depois `./mvnw spring-boot:run`. O Flyway cria 
 | Testes de entradas inválidas | Campos obrigatórios, valor negativo, datas incoerentes |
 | Testes de operações repetidas | RN07 (quitação dupla), documento e título duplicados |
 
+A saída das execuções está em [`docs/evidencias/testes.md`](evidencias/testes.md).
+
 ### Pendência
 
 > Contas a receber e despesas ainda não têm testes unitários próprios. Como contas a receber é espelho de contas a pagar e compartilha as mesmas políticas de encargo, o risco é baixo — mas a cobertura é assimétrica e isso está registrado como limitação conhecida.

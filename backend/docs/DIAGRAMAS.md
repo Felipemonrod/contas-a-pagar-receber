@@ -118,7 +118,25 @@ erDiagram
 
     PLANO_CONTA ||--o{ DESPESA : categoriza
     CONTA_PAGAR |o--|| DESPESA : "origina-se de"
+
+    BANCO ||--o{ AGENCIA : possui
+    AGENCIA ||--o{ CONTA_CORRENTE : mantem
+
+    CARTORIO ||--o{ REMESSA_CARTORIO : recebe
+    CONTA_RECEBER ||--o| REMESSA_CARTORIO : "vai a protesto"
+
+    PLANO_CONTA ||--o{ LANCAMENTO : "credito"
+    PLANO_CONTA ||--o{ LANCAMENTO : "debito"
+    LANCAMENTO ||--o{ DESPESA : contabiliza
+    LANCAMENTO ||--o{ CONTA_PAGAR : contabiliza
+    LANCAMENTO ||--o{ CONTA_RECEBER : contabiliza
+
+    PESSOA ||--o{ CHEQUE_PRE_DATADO : emite
+    CONTA_CORRENTE ||--o{ CHEQUE_PRE_DATADO : sacado_contra
+    CONTA_RECEBER ||--o{ CHEQUE_PRE_DATADO : garante
 ```
+
+**Cobertura do livro:** as 13 tabelas do `Cliente.db` ao `RemessaCartorio.db` estão representadas. O sistema tem 24 tabelas porque o modelo original foi normalizado — endereços, telefones, papéis, rateios e as tabelas de domínio não existiam no Paradox.
 
 **Normalização aplicada:**
 
@@ -143,6 +161,10 @@ flowchart TD
         C4[contareceber.Controller]
         C5[despesa.Controller]
         C6[relatorio.Controller]
+        C7[banco.Controller]
+        C8[cartorio.Controller]
+        C9[lancamento.Controller]
+        C10[cheque.Controller]
     end
 
     subgraph negocio["Negócio"]
@@ -152,6 +174,10 @@ flowchart TD
         S4[contareceber.Service]
         S5[despesa.Service]
         S6[relatorio.Service]
+        S7[banco.Service]
+        S8[cartorio.Service]
+        S9[lancamento.Service]
+        S10[cheque.Service]
         EN[shared.encargo<br/>Strategy]
     end
 
@@ -170,6 +196,14 @@ flowchart TD
     C4 --> S4
     C5 --> S5
     C6 --> S6
+    C7 --> S7
+    C8 --> S8
+    C9 --> S9
+    C10 --> S10
+
+    S8 --> S4
+    S10 --> S7
+    S10 --> S4
 
     S3 --> EN
     S4 --> EN
@@ -180,6 +214,10 @@ flowchart TD
     S2 --> R1
     S3 --> R1
     S4 --> R1
+    S7 --> R1
+    S8 --> R1
+    S9 --> R1
+    S10 --> R1
 
     S1 -.-> EX
     S3 -.-> EX
@@ -235,6 +273,13 @@ flowchart LR
     UC9[Gerar título<br/>da despesa]
     UC10[Consultar<br/>relatórios]
     UC11[Cancelar<br/>título]
+    UC12[Manter bancos,<br/>agências e contas]
+    UC13[Manter<br/>cartórios]
+    UC14[Enviar título<br/>a protesto]
+    UC15[Registrar protesto<br/>e baixa]
+    UC16[Registrar cheque<br/>pré-datado]
+    UC17[Movimentar<br/>cheque]
+    UC18[Lançar na<br/>contabilidade]
 
     OPER --> UC1
     OPER --> UC2
@@ -248,10 +293,22 @@ flowchart LR
     OPER --> UC10
     OPER --> UC11
 
+    OPER --> UC12
+    OPER --> UC13
+    OPER --> UC14
+    OPER --> UC15
+    OPER --> UC16
+    OPER --> UC17
+    OPER --> UC18
+
     UC3 -.->|requer| UC1
     UC3 -.->|requer| UC2
     UC6 -.->|inclui| UC5
     UC9 -.->|inclui| UC3
+    UC14 -.->|requer| UC13
+    UC14 -.->|requer| UC4
+    UC16 -.->|requer| UC12
+    UC18 -.->|requer| UC2
 ```
 
 ---
@@ -367,6 +424,10 @@ flowchart TB
             MRC[["«component»<br/>Contas a Receber"]]
             MD[["«component»<br/>Despesas"]]
             MR[["«component»<br/>Relatórios"]]
+            MB[["«component»<br/>Cadastro Bancário"]]
+            MCT[["«component»<br/>Cartórios e Remessa"]]
+            ML[["«component»<br/>Lançamento Contábil"]]
+            MCH[["«component»<br/>Cheque Pré-Datado"]]
         end
 
         ENC[["«component»<br/>Cálculo de Encargos<br/>──────────<br/>oferece: PoliticaEncargo"]]
@@ -376,17 +437,25 @@ flowchart TB
     end
 
     NAV -->|HTTP/JSON| API
-    API --> MP & MC & MPG & MRC & MD & MR
+    API --> MP & MC & MPG & MRC & MD & MR & MB & MCT & ML & MCH
 
     MPG -->|requer| ENC
     MRC -->|requer| ENC
     MD -->|requer| MPG
     MR -->|requer| PER
 
+    MCT -->|requer| MRC
+    MCH -->|requer| MB
+    MCH -->|requer| MRC
+
     MP --> PER
     MC --> PER
     MPG --> PER
     MRC --> PER
+    MB --> PER
+    MCT --> PER
+    ML --> PER
+    MCH --> PER
 
     API -. erros .-> ERR
     PER -->|JDBC| MYSQL
