@@ -110,20 +110,6 @@ export function TitulosScreen({
       onAviso('Selecione um título primeiro.');
       return;
     }
-    // Título COM rateio fica de fora, e não por escolha de produto: hoje a
-    // API não consegue alterá-lo. O PUT faz `rateios.clear()` e reinsere na
-    // mesma transação, e a tabela tem UNIQUE (conta_pagar_id, plano_conta_id),
-    // então o INSERT sai antes do DELETE e o banco recusa com 409. As duas
-    // saídas possíveis pelo front-end seriam ruins: omitir os rateios apaga
-    // o rateio em silêncio, e reenviá-los devolve um 409 que não explica
-    // nada. Até o back-end corrigir, avisamos em vez de estragar o dado.
-    if (titulo.rateios.length) {
-      onAviso(
-        'Este título tem rateio entre categorias e a API ainda não aceita ' +
-          'alterá-lo. Para mudar algo, cancele e lance de novo.',
-      );
-      return;
-    }
     setErroDoFormulario('');
     setJanela({ tipo: 'editar', registro: tituloParaRegistro(titulo, lado), titulo });
   }
@@ -259,12 +245,6 @@ export function TitulosScreen({
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}
             salvando={salvando}
-            // Na edicao, o PUT da API ignora o numero do titulo e a pessoa:
-            // deixa-los editaveis faria o usuario crer numa alteracao que
-            // nunca acontece.
-            camposSomenteLeitura={
-              janela.tipo === 'editar' ? ['Número do Título', lado.campoDaPessoa] : []
-            }
           />
         </Modal>
       )}

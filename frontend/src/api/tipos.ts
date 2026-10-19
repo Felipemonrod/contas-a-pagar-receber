@@ -47,6 +47,12 @@ export type PessoaApi = {
   inscricaoEstadual: string | null;
   email: string | null;
   contato: string | null;
+  /** Dados comerciais do livro (cap. 5). So fazem sentido para FORNECEDOR. */
+  condicaoPagamento: string | null;
+  descontoNegociado: string | null;
+  /** Prazo de entrega em dias; zero significa entrega imediata. */
+  prazoEntregaDias: number | null;
+  vendedor: string | null;
   ativo: boolean;
   papeis: Papel[];
   telefones: TelefoneApi[];
@@ -90,6 +96,10 @@ export type PessoaNova = {
   inscricaoEstadual?: string;
   email?: string;
   contato?: string;
+  condicaoPagamento?: string;
+  descontoNegociado?: string;
+  prazoEntregaDias?: number;
+  vendedor?: string;
   telefones: TelefoneNovo[];
   enderecos: EnderecoNovo[];
 };

@@ -91,6 +91,10 @@ function montarPessoa(corpo: PessoaNova, id: number): PessoaApi {
     inscricaoEstadual: corpo.inscricaoEstadual ?? null,
     email: corpo.email ?? null,
     contato: corpo.contato ?? null,
+    condicaoPagamento: corpo.condicaoPagamento ?? null,
+    descontoNegociado: corpo.descontoNegociado ?? null,
+    prazoEntregaDias: corpo.prazoEntregaDias ?? null,
+    vendedor: corpo.vendedor ?? null,
     ativo: true,
     papeis: corpo.papeis,
     telefones: corpo.telefones.map((telefone, indice) => ({

@@ -138,7 +138,7 @@ export const screens: Record<Entity, ScreenConfig> = {
       col('Endereço', 250),
       col('Cidade', 170),
       col('Telefone', 160),
-      col('CPF / CNPJ', 180),
+      col('Vendedor', 160),
     ],
   },
 

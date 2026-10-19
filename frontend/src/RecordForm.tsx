@@ -37,7 +37,17 @@ const OBRIGATORIOS = ['Número do Título', 'Número do Cheque', 'Nova Conta'];
 const CAIXAS_DE_MARCAR = ['Consolidado', 'Inclusão Contínua'];
 
 /** O rótulo indica um valor em dinheiro? Define o tipo e o passo do campo. */
-const ehDinheiro = (rotulo: string) => /^(Valor|Limite|Desconto$|Acréscimo)/.test(rotulo);
+/**
+ * O rotulo indica um valor em dinheiro?
+ *
+ * 'Desconto' sozinho NAO entra: no cadastro de fornecedor ele e o desconto
+ * negociado, um texto livre como '5% a vista'. O desconto em dinheiro dos
+ * titulos se chama 'Valor do Desconto' e entra pelo 'Valor'.
+ */
+const ehDinheiro = (rotulo: string) => /^(Valor|Limite|Acréscimo)/.test(rotulo);
+
+/** O rotulo indica uma quantidade inteira, sem centavos? */
+const ehInteiro = (rotulo: string) => rotulo === 'Entrega';
 
 /** O rótulo indica uma data? */
 const ehData = (rotulo: string) =>
@@ -175,6 +185,7 @@ export function RecordForm({
   function tipoDoCampo(rotulo: string): string {
     if (ehData(rotulo)) return 'date';
     if (ehDinheiro(rotulo)) return 'number';
+    if (ehInteiro(rotulo)) return 'number';
     if (rotulo === 'Telefone') return 'tel';
     return 'text';
   }
@@ -183,6 +194,8 @@ export function RecordForm({
   function limiteDoCampo(rotulo: string): number | undefined {
     if (rotulo === 'CEP') return 9;
     if (rotulo === 'Ramal') return 6;
+    if (rotulo === 'Pagamento (dias)' || rotulo === 'Desconto') return 20;
+    if (rotulo === 'Vendedor') return 50;
     return undefined;
   }
 
@@ -249,8 +262,8 @@ export function RecordForm({
             name={rotulo}
             required={obrigatorio}
             type={tipoDoCampo(rotulo)}
-            step={ehDinheiro(rotulo) ? '0.01' : undefined}
-            min={ehDinheiro(rotulo) ? '0' : undefined}
+            step={ehDinheiro(rotulo) ? '0.01' : ehInteiro(rotulo) ? '1' : undefined}
+            min={ehDinheiro(rotulo) || ehInteiro(rotulo) ? '0' : undefined}
             maxLength={limiteDoCampo(rotulo)}
             readOnly={travado}
             value={values[rotulo] || ''}

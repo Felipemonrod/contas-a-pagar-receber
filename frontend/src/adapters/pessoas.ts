@@ -121,6 +121,11 @@ export function pessoaParaRegistro(pessoa: PessoaApi, papel: Papel): RecordData 
     'CPF / CNPJ': pessoa.documento,
     'Inscrição Estadual': pessoa.inscricaoEstadual ?? '',
     Contato: pessoa.contato ?? '',
+    // Dados comerciais: so o formulario de Fornecedor os exibe.
+    'Pagamento (dias)': pessoa.condicaoPagamento ?? '',
+    Desconto: pessoa.descontoNegociado ?? '',
+    Entrega: pessoa.prazoEntregaDias === null ? '' : String(pessoa.prazoEntregaDias),
+    Vendedor: pessoa.vendedor ?? '',
     // No formulario do livro o campo de e-mail se chama "Internet".
     Internet: pessoa.email ?? '',
     Endereço: endereco ? juntarEndereco(endereco.logradouro, endereco.numero) : '',
@@ -182,6 +187,19 @@ export function registroParaPessoa(
   const telefoneExibido = indiceDoTelefoneExibido(pessoaAtual?.telefones ?? []);
   const enderecoExibido = indiceDoEnderecoExibido(pessoaAtual?.enderecos ?? []);
 
+  /**
+   * Le o prazo de entrega, que e o unico campo comercial numerico.
+   * Segue a mesma regra dos demais: campo ausente do formulario mantem o
+   * valor gravado, campo presente e vazio apaga.
+   */
+  function prazoDeEntrega(atual?: number | null): number | undefined {
+    if (!('Entrega' in valores)) return atual ?? undefined;
+    const digitado = campo('Entrega');
+    if (!digitado) return undefined;
+    const numero = Number(digitado);
+    return Number.isFinite(numero) && numero >= 0 ? numero : undefined;
+  }
+
   const telefones: TelefoneNovo[] = (pessoaAtual?.telefones ?? []).map(telefone => ({
     numero: telefone.numero,
     ramal: telefone.ramal ?? undefined,
@@ -242,6 +260,10 @@ export function registroParaPessoa(
     inscricaoEstadual: opcional('Inscrição Estadual', pessoaAtual?.inscricaoEstadual),
     email: opcional('Internet', pessoaAtual?.email),
     contato: opcional('Contato', pessoaAtual?.contato),
+    condicaoPagamento: opcional('Pagamento (dias)', pessoaAtual?.condicaoPagamento),
+    descontoNegociado: opcional('Desconto', pessoaAtual?.descontoNegociado),
+    prazoEntregaDias: prazoDeEntrega(pessoaAtual?.prazoEntregaDias),
+    vendedor: opcional('Vendedor', pessoaAtual?.vendedor),
     telefones,
     enderecos,
   };

@@ -25,6 +25,10 @@ const pessoaDoContrato: PessoaApi = {
   inscricaoEstadual: null,
   email: 'contato@greensoft.com.br',
   contato: 'Wilson',
+  condicaoPagamento: null,
+  descontoNegociado: null,
+  prazoEntregaDias: null,
+  vendedor: null,
   ativo: true,
   papeis: ['FORNECEDOR', 'CLIENTE'],
   telefones: [
@@ -419,5 +423,90 @@ describe('qual telefone e qual endereço a tela exibe', () => {
 
   it('devolve -1 quando a pessoa não tem endereço', () => {
     expect(indiceDoEnderecoExibido([])).toBe(-1);
+  });
+});
+
+describe('dados comerciais do fornecedor', () => {
+  /** Fornecedor com os quatro campos do capítulo 5 preenchidos. */
+  const comDadosComerciais: PessoaApi = {
+    ...pessoaDoContrato,
+    condicaoPagamento: '30/60/90 dias',
+    descontoNegociado: '5% a vista',
+    prazoEntregaDias: 15,
+    vendedor: 'Wilson Souza',
+  };
+
+  it('traz os quatro campos para o formulário', () => {
+    const linha = pessoaParaRegistro(comDadosComerciais, 'FORNECEDOR');
+
+    expect(linha['Pagamento (dias)']).toBe('30/60/90 dias');
+    expect(linha.Desconto).toBe('5% a vista');
+    expect(linha.Entrega).toBe('15');
+    expect(linha.Vendedor).toBe('Wilson Souza');
+  });
+
+  it('distingue prazo zero de prazo não informado', () => {
+    // Zero significa entrega imediata, e não "sem prazo".
+    const imediata = pessoaParaRegistro(
+      { ...comDadosComerciais, prazoEntregaDias: 0 },
+      'FORNECEDOR',
+    );
+    const semPrazo = pessoaParaRegistro(
+      { ...comDadosComerciais, prazoEntregaDias: null },
+      'FORNECEDOR',
+    );
+
+    expect(imediata.Entrega).toBe('0');
+    expect(semPrazo.Entrega).toBe('');
+  });
+
+  it('grava os quatro campos no corpo da API', () => {
+    const corpo = registroParaPessoa(
+      {
+        Fornecedor: 'Greensoft',
+        'CPF / CNPJ': '1',
+        'Pagamento (dias)': '30/60/90 dias',
+        Desconto: '5% a vista',
+        Entrega: '15',
+        Vendedor: 'Wilson Souza',
+      },
+      'FORNECEDOR',
+    );
+
+    expect(corpo.condicaoPagamento).toBe('30/60/90 dias');
+    expect(corpo.descontoNegociado).toBe('5% a vista');
+    // O prazo é número na API, e não texto como os outros três.
+    expect(corpo.prazoEntregaDias).toBe(15);
+    expect(corpo.vendedor).toBe('Wilson Souza');
+  });
+
+  it('envia prazo zero, que é um valor válido', () => {
+    const corpo = registroParaPessoa(
+      { Fornecedor: 'A', 'CPF / CNPJ': '1', Entrega: '0' },
+      'FORNECEDOR',
+    );
+
+    expect(corpo.prazoEntregaDias).toBe(0);
+  });
+
+  it('recusa prazo negativo, que a API não aceita', () => {
+    const corpo = registroParaPessoa(
+      { Fornecedor: 'A', 'CPF / CNPJ': '1', Entrega: '-5' },
+      'FORNECEDOR',
+    );
+
+    expect(corpo.prazoEntregaDias).toBeUndefined();
+  });
+
+  it('o formulário de cliente não tem estes campos e não os apaga', () => {
+    // A tela de Clientes não exibe nenhum deles; gravar por lá preserva.
+    const corpo = registroParaPessoa(
+      { Cliente: 'Greensoft', 'CPF / CNPJ': '1' },
+      'CLIENTE',
+      comDadosComerciais,
+    );
+
+    expect(corpo.vendedor).toBe('Wilson Souza');
+    expect(corpo.prazoEntregaDias).toBe(15);
   });
 });

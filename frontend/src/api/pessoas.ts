@@ -12,23 +12,16 @@ import type { Papel, PessoaApi, PessoaNova } from './tipos';
 /**
  * Lista pessoas de um papel, opcionalmente filtrando pelo nome.
  *
- * O filtro por nome e feito pela propria API (parametro `nome`), e nao no
- * navegador, para que a busca alcance todos os registros do banco.
- *
- * ATENCAO: no back-end os dois filtros se excluem. Em PessoaService.listar,
- * quando `nome` vem preenchido o parametro `papel` e ignorado, e a consulta
- * devolve qualquer pessoa cujo nome combine - inclusive de outro papel. Sem
- * tratamento, buscar na tela de Clientes acabaria listando fornecedores.
- * Por isso, quando ha busca por nome, o papel e conferido aqui tambem.
+ * Os dois filtros são aplicados pela API e se combinam: buscar "silva" na
+ * tela de Clientes devolve só clientes chamados Silva. Até a correção de
+ * 18/10/2026 no back-end eles se excluíam — o nome anulava o papel —, e o
+ * front-end precisava conferir o papel de novo. Não precisa mais.
  */
-export async function listarPessoas(papel: Papel, nome?: string): Promise<PessoaApi[]> {
-  const buscaPorNome = Boolean(nome && nome.trim());
+export function listarPessoas(papel: Papel, nome?: string): Promise<PessoaApi[]> {
   const parametros = new URLSearchParams({ papel });
-  if (buscaPorNome && nome) parametros.set('nome', nome.trim());
+  if (nome && nome.trim()) parametros.set('nome', nome.trim());
 
-  const encontradas = await requisitar<PessoaApi[]>(`/pessoas?${parametros.toString()}`);
-  if (!buscaPorNome) return encontradas;
-  return encontradas.filter(pessoa => pessoa.papeis.includes(papel));
+  return requisitar<PessoaApi[]>(`/pessoas?${parametros.toString()}`);
 }
 
 /** Cadastra uma pessoa. Responde 201 com o recurso criado. */

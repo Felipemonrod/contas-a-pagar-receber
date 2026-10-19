@@ -283,9 +283,9 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     expect(await screen.findByText('ALFA-1')).toBeInTheDocument();
   });
 
-  it('recusa editar título com rateio, em vez de apagá-lo em silêncio', async () => {
-    // A API não consegue alterar um título com rateio: o PUT limpa e
-    // reinsere na mesma transação, e a UNIQUE (conta, categoria) recusa.
+  it('edita título com rateio sem perder o rateio', async () => {
+    // Até 18/10/2026 isto era impossível: omitir o rateio apagava, reenviar
+    // dava 409. O back-end passou a reconciliar, e a tela voltou a editar.
     const api = instalarApiFalsa(PESSOAS_DE_EXEMPLO, [
       {
         numeroTitulo: 'RAT-01',
@@ -305,18 +305,22 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     await user.click(screen.getByRole('button', { name: /Selecionar/ }));
     await user.click(screen.getByRole('button', { name: 'Editar' }));
 
-    // Nada é aberto, e o usuário recebe o motivo.
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(await screen.findByRole('status')).toHaveTextContent('rateio');
-    // O rateio continua intacto: nenhuma requisição de alteração saiu.
-    expect(api.contas()[0].rateios).toHaveLength(1);
-    expect(api.chamadas().some(c => c.metodo === 'PUT')).toBe(false);
+    const dialog = await screen.findByRole('dialog', { name: 'Pagamento' });
+    await user.type(within(dialog).getByLabelText(/^Observação/), 'revisado');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(api.contas()[0].observacao).toBe('revisado');
+    // O adapter devolveu o rateio junto, então ele sobreviveu.
+    expect(api.contas()[0].rateios).toEqual([
+      { planoContaId: 7, categoria: '21.03 - Energia Eletrica', valor: 1000 },
+    ]);
   });
 
-  it('edita título sem rateio e trava os campos que a API ignora', async () => {
+  it('altera o número do título e o fornecedor, que a API passou a gravar', async () => {
     const api = instalarApiFalsa(PESSOAS_DE_EXEMPLO, [
       {
-        numeroTitulo: 'SEM-RAT',
+        numeroTitulo: 'ANTIGO-1',
         pessoaId: 4,
         tipoTitulo: 'DUPLICATA',
         valor: 500,
@@ -328,23 +332,27 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     window.location.hash = '#/pagamentos';
     render(<App />);
 
-    expect(await screen.findByText('SEM-RAT')).toBeInTheDocument();
+    expect(await screen.findByText('ANTIGO-1')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /Selecionar/ }));
     await user.click(screen.getByRole('button', { name: 'Editar' }));
     const dialog = await screen.findByRole('dialog', { name: 'Pagamento' });
 
-    // O PUT da API ignora estes dois campos, então não podem ser editados.
-    expect(within(dialog).getByLabelText(/^Número do Título/)).toHaveAttribute('readonly');
-    expect(within(dialog).getByLabelText(/^Nome do Fornecedor/)).toBeDisabled();
-    // Os demais seguem editáveis.
-    expect(within(dialog).getByLabelText('Valor do Título')).not.toHaveAttribute('readonly');
+    // Os dois campos voltaram a ser editáveis: a API deixou de ignorá-los.
+    const numero = within(dialog).getByLabelText(/^Número do Título/);
+    expect(numero).not.toHaveAttribute('readonly');
+    expect(within(dialog).getByLabelText(/^Nome do Fornecedor/)).toBeEnabled();
 
-    await user.type(within(dialog).getByLabelText(/^Observação/), 'revisado');
+    await user.clear(numero);
+    await user.type(numero, 'NOVO-9');
+    await user.selectOptions(
+      within(dialog).getByLabelText(/^Nome do Fornecedor/),
+      'Distribuidora Central',
+    );
     await user.click(within(dialog).getByRole('button', { name: 'OK' }));
 
-    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
-    expect(api.contas()[0].observacao).toBe('revisado');
-    expect(api.contas()[0].numeroTitulo).toBe('SEM-RAT');
+    expect(await screen.findByText('NOVO-9')).toBeInTheDocument();
+    expect(api.contas()[0].numeroTitulo).toBe('NOVO-9');
+    expect(api.contas()[0].pessoaNome).toBe('Distribuidora Central');
   });
 
   it('quita um título mostrando antes a prévia vinda da API', async () => {

@@ -76,6 +76,20 @@
         "Ramal",
         "Internet"
       ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Pagamento (dias)",
+        "Desconto",
+        "Entrega"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Vendedor"
+      ],
       "separatorAfter": false
     }
   ],
