@@ -17,6 +17,8 @@ public class PessoaMapper {
         return new PessoaResponse(
                 p.getId(), p.getNome(), p.getDocumento(), p.getInscricaoEstadual(),
                 p.getEmail(), p.getContato(), p.getAtivo(),
+                p.getCondicaoPagamento(), p.getDescontoNegociado(),
+                p.getPrazoEntregaDias(), p.getVendedor(),
                 p.getPapeis().stream().map(Papel::getCodigo).toList(),
                 p.getTelefones().stream()
                         .map(t -> new TelefoneResponse(t.getId(), t.getNumero(), t.getRamal(), t.getTipo()))

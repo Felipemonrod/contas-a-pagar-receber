@@ -108,6 +108,10 @@ public class PessoaService {
         pessoa.setInscricaoEstadual(req.inscricaoEstadual());
         pessoa.setEmail(req.email());
         pessoa.setContato(req.contato());
+        pessoa.setCondicaoPagamento(req.condicaoPagamento());
+        pessoa.setDescontoNegociado(req.descontoNegociado());
+        pessoa.setPrazoEntregaDias(req.prazoEntregaDias());
+        pessoa.setVendedor(req.vendedor());
 
         for (String codigo : req.papeis()) {
             Papel papel = papelRepository.findByCodigo(codigo)

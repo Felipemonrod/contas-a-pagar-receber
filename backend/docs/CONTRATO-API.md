@@ -58,6 +58,12 @@ Nos demais, `campos` é `[]` e a mensagem já é legível para o usuário final.
   "inscricaoEstadual": null,
   "email": "contato@greensoft.com.br",
   "contato": "Wilson",
+
+  "condicaoPagamento": "30/60/90 dias",
+  "descontoNegociado": "5% a vista",
+  "prazoEntregaDias": 15,
+  "vendedor": "Wilson Souza",
+
   "telefones": [
     { "numero": "(11) 5585-4975", "ramal": "201", "tipo": "COMERCIAL" },
     { "numero": "(11) 5584-2545", "tipo": "FAX" }
@@ -72,6 +78,8 @@ Nos demais, `campos` é `[]` e a mensagem já é legível para o usuário final.
 
 Obrigatórios: `nome`, `documento` (único), `papeis` (não vazio). Em endereço: `logradouro`, `cidade`, `uf`. Em telefone: `numero`.
 
+**Dados comerciais** (`condicaoPagamento`, `descontoNegociado`, `prazoEntregaDias`, `vendedor`) vêm do `Fornecedor.db` do livro (cap. 5, p. 72) e só fazem sentido para quem tem o papel `FORNECEDOR`. São opcionais e ficam nulos para clientes. `prazoEntregaDias` é o prazo em dias, não aceita negativo — zero significa entrega imediata.
+
 Telefones e endereços são devolvidos **na ordem em que foram cadastrados**.
 
 **Resposta (201):**
@@ -85,6 +93,10 @@ Telefones e endereços são devolvidos **na ordem em que foram cadastrados**.
   "email": "contato@greensoft.com.br",
   "contato": "Wilson",
   "ativo": true,
+  "condicaoPagamento": "30/60/90 dias",
+  "descontoNegociado": "5% a vista",
+  "prazoEntregaDias": 15,
+  "vendedor": "Wilson Souza",
   "papeis": ["FORNECEDOR", "CLIENTE"],
   "telefones": [
     { "id": 1, "numero": "(11) 5585-4975", "ramal": "201", "tipo": "COMERCIAL" },

@@ -55,6 +55,28 @@ public class Pessoa {
     @Column(nullable = false)
     private Boolean ativo = true;
 
+    // ------------------------------------------------------------------
+    // Dados comerciais do fornecedor (livro, cap. 5, p. 72).
+    // So fazem sentido para quem tem o papel FORNECEDOR; para clientes
+    // ficam nulos.
+    // ------------------------------------------------------------------
+
+    /** Condicao negociada, como "30/60/90 dias". Texto livre, como no livro. */
+    @Column(name = "condicao_pagamento", length = 20)
+    private String condicaoPagamento;
+
+    /** Desconto acordado, como "5% a vista". Texto livre, como no livro. */
+    @Column(name = "desconto_negociado", length = 20)
+    private String descontoNegociado;
+
+    /** Prazo de entrega em dias. */
+    @Column(name = "prazo_entrega_dias")
+    private Integer prazoEntregaDias;
+
+    /** Contato comercial dentro do fornecedor. */
+    @Column(length = 50)
+    private String vendedor;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm = LocalDateTime.now();
 

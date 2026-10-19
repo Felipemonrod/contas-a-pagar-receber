@@ -62,6 +62,7 @@ As regras marcadas como "extensão" não existem no livro e foram acrescentadas 
 | RF01 | Cadastrar, consultar, alterar e inativar pessoas (clientes e fornecedores) |
 | RF02 | Associar a uma pessoa múltiplos telefones e endereços |
 | RF03 | Permitir que uma pessoa seja cliente e fornecedor simultaneamente |
+| RF03a | Registrar os dados comerciais do fornecedor: condição de pagamento, desconto negociado, prazo de entrega e vendedor |
 | RF04 | Manter o plano de contas hierárquico |
 | RF05 | Listar apenas as categorias que aceitam lançamento |
 | RF06 | Lançar título a pagar, com rateio entre categorias |

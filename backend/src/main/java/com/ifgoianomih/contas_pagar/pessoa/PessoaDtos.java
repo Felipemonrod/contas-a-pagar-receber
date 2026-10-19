@@ -4,6 +4,7 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 /** DTOs de pessoa. Agrupados porque sao curtos e sempre usados juntos. */
@@ -27,6 +28,14 @@ public final class PessoaDtos {
             String inscricaoEstadual,
             String email,
             String contato,
+
+            /* Dados comerciais - so se aplicam a fornecedores (livro, p. 72) */
+            @Size(max = 20) String condicaoPagamento,
+            @Size(max = 20) String descontoNegociado,
+            @PositiveOrZero(message = "O prazo de entrega nao pode ser negativo")
+            Integer prazoEntregaDias,
+            @Size(max = 50) String vendedor,
+
             List<TelefoneRequest> telefones,
             List<EnderecoRequest> enderecos) {
     }
@@ -56,6 +65,10 @@ public final class PessoaDtos {
             String email,
             String contato,
             Boolean ativo,
+            String condicaoPagamento,
+            String descontoNegociado,
+            Integer prazoEntregaDias,
+            String vendedor,
             List<String> papeis,
             List<TelefoneResponse> telefones,
             List<EnderecoResponse> enderecos) {
