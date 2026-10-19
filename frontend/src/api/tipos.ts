@@ -388,3 +388,214 @@ export type InadimplenciaApi = {
   totalAReceberVencido: number;
   titulos: TituloVencidoApi[];
 };
+
+// ---------------------------------------------------------------------------
+// Cadastro bancario - secao 7 do contrato (livro, cap. 9)
+// ---------------------------------------------------------------------------
+
+/**
+ * Cadeia de tres niveis: um banco tem agencias, uma agencia tem contas.
+ * GET /api/bancos ja devolve tudo aninhado, pronto para a arvore da tela.
+ */
+export type ContaCorrenteApi = {
+  id: number;
+  agenciaId: number;
+  numero: string;
+  tipo: string;
+  limite: number | null;
+  ativa: boolean;
+  /** Pronta para exibir: "341 / 1234 / 56789-0". */
+  identificacao: string;
+};
+
+export type AgenciaApi = {
+  id: number;
+  bancoId: number;
+  bancoCodigo: string;
+  bancoNome: string;
+  numero: string;
+  nome: string | null;
+  endereco: string | null;
+  gerente: string | null;
+  telefone: string | null;
+  ramal: string | null;
+  fax: string | null;
+  email: string | null;
+  contas: ContaCorrenteApi[];
+};
+
+export type BancoApi = {
+  id: number;
+  codigo: string;
+  nome: string;
+  agencias: AgenciaApi[];
+};
+
+/** Versao plana de banco, para combos. */
+export type BancoItemApi = {
+  id: number;
+  codigo: string;
+  nome: string;
+};
+
+/** Corpo de POST e PUT de /api/bancos. Codigo unico, ate 4 caracteres. */
+export type BancoNovo = {
+  codigo: string;
+  nome: string;
+};
+
+/** Corpo de /api/agencias. O numero e unico DENTRO do banco. */
+export type AgenciaNova = {
+  bancoId: number;
+  numero: string;
+  nome?: string;
+  gerente?: string;
+  telefone?: string;
+  ramal?: string;
+  fax?: string;
+  email?: string;
+  endereco?: string;
+};
+
+/** Corpo de /api/contas-correntes. */
+export type ContaCorrenteNova = {
+  agenciaId: number;
+  numero: string;
+  tipo?: string;
+  limite?: number;
+};
+
+// ---------------------------------------------------------------------------
+// Cartorios e remessa para protesto - secao 8 (livro, cap. 10 e 17)
+// ---------------------------------------------------------------------------
+
+export type CartorioApi = {
+  id: number;
+  nome: string;
+  contato: string | null;
+  telefone: string | null;
+};
+
+export type CartorioNovo = {
+  nome: string;
+  contato?: string;
+  telefone?: string;
+};
+
+/** Situacao da remessa, derivada das datas pelo back-end. */
+export type SituacaoRemessa = 'ENVIADA' | 'PROTESTADA' | 'BAIXADA';
+
+export type RemessaApi = {
+  id: number;
+  cartorioId: number;
+  cartorioNome: string;
+  contaReceberId: number;
+  numeroTitulo: string;
+  cliente: string;
+  valorTitulo: number;
+  saldoDevedor: number;
+  vencimentoTitulo: string;
+  dataRemessa: string;
+  dataProtesto: string | null;
+  dataBaixa: string | null;
+  situacao: SituacaoRemessa;
+  observacao: string | null;
+};
+
+/**
+ * Corpo de POST /api/remessas-cartorio.
+ * Regra RN09: so vai a protesto titulo VENCIDO e NAO QUITADO; a API recusa
+ * com 422 um titulo a vencer, quitado ou cancelado. `dataRemessa` e
+ * opcional e, omitida, vale hoje.
+ */
+export type RemessaNova = {
+  cartorioId: number;
+  contaReceberId: number;
+  dataRemessa?: string;
+  observacao?: string;
+};
+
+// ---------------------------------------------------------------------------
+// Lancamento contabil - secao 9 (livro, cap. 12)
+// ---------------------------------------------------------------------------
+
+/** Partida dobrada: o valor sai de uma conta e entra em outra. */
+export type StatusLancamento = 'ATIVO' | 'ESTORNADO';
+
+export type LancamentoApi = {
+  id: number;
+  contaCreditoId: number;
+  /** Ja formatada pela API, como '11.01 - Caixa'. */
+  contaCredito: string;
+  contaDebitoId: number;
+  contaDebito: string;
+  valor: number;
+  descricao: string;
+  data: string;
+  status: StatusLancamento;
+};
+
+/**
+ * Corpo de POST /api/lancamentos.
+ * As duas contas precisam ser DIFERENTES e ambas ANALITICAS: conta
+ * consolidada nao aceita lancamento (422, regra RN01).
+ */
+export type LancamentoNovo = {
+  contaCreditoId: number;
+  contaDebitoId: number;
+  valor: number;
+  descricao: string;
+  data: string;
+};
+
+// ---------------------------------------------------------------------------
+// Cheque pre-datado - secao 10 (livro, cap. 16)
+// ---------------------------------------------------------------------------
+
+/**
+ * Ciclo do cheque: EM_CARTEIRA -> DEPOSITADO -> COMPENSADO ou DEVOLVIDO.
+ * Cheque compensado nao muda mais de situacao (422).
+ */
+export type SituacaoCheque = 'EM_CARTEIRA' | 'DEPOSITADO' | 'COMPENSADO' | 'DEVOLVIDO';
+
+export type ChequeApi = {
+  id: number;
+  numeroCheque: string;
+  pessoaId: number;
+  emitente: string;
+  contaCorrenteId: number;
+  /** Ja formatada pela API: "341 / 1234 / 56789-0". */
+  contaCorrente: string;
+  emissao: string;
+  deposito: string;
+  valor: number;
+  situacao: SituacaoCheque;
+  /** Verdadeiro quando segue em carteira com a data de deposito ja passada. */
+  vencido: boolean;
+  contaReceberId: number | null;
+  numeroTitulo: string | null;
+  descricao: string | null;
+};
+
+/**
+ * Corpo de POST e PUT de /api/cheques.
+ * O emitente precisa ter o papel CLIENTE, e o numero e unico por conta
+ * corrente. `contaReceberId` e opcional e liga o cheque ao titulo que ele
+ * garante. O PUT so vale enquanto o cheque esta EM_CARTEIRA.
+ */
+export type ChequeNovo = {
+  numeroCheque: string;
+  pessoaId: number;
+  contaCorrenteId: number;
+  emissao: string;
+  deposito: string;
+  valor: number;
+  contaReceberId?: number;
+  descricao?: string;
+};
+
+/** Corpo de POST /api/cheques/{id}/situacao. */
+export type MudancaDeSituacao = {
+  situacao: SituacaoCheque;
+  observacao?: string;
+};

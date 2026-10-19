@@ -117,6 +117,16 @@ export function RecordForm({
     if (rotulo === 'Banco') {
       return [...new Set([...BANCOS_PADRAO, ...database.bancos.map(b => b.Banco)])];
     }
+    // No cheque, a conta corrente vem de /contas-correntes/ativas, ja
+    // formatada pela API como '341 / 1234 / 56789-0'.
+    if (rotulo === 'Conta Corrente' && entity === 'cheques') {
+      return database.bancos.map(c => c['Conta Corrente']);
+    }
+    // Na remessa, o titulo e escolhido entre os vencidos em aberto: a
+    // regra RN09 nao deixa protestar nenhum outro.
+    if (rotulo === 'Número do Título' && entity === 'remessas') {
+      return database.recebimentos.map(t => t['Número do Título']);
+    }
     if (rotulo === 'Cartório') return database.cartorios.map(c => c['Nome do Cartório']);
     if (rotulo === 'Nome do Fornecedor') return database.fornecedores.map(f => f.Fornecedor);
     if (rotulo === 'Nome do Cliente' || (rotulo === 'Cliente' && entity === 'cheques')) {

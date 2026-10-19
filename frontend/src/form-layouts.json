@@ -313,28 +313,20 @@
     {
       "fields": [
         "Número do Cheque",
-        "Emissão"
+        "Valor"
       ],
       "separatorAfter": true
     },
     {
       "fields": [
-        "Lançamento",
-        "Data para Depósito"
-      ],
-      "separatorAfter": false
-    },
-    {
-      "fields": [
-        "Valor",
-        "Banco"
-      ],
-      "separatorAfter": false
-    },
-    {
-      "fields": [
-        "Agência",
         "Conta Corrente"
+      ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Emissão",
+        "Data para Depósito"
       ],
       "separatorAfter": true
     },
@@ -360,9 +352,13 @@
     },
     {
       "fields": [
-        "Remessa",
-        "Protesto",
-        "Baixa"
+        "Remessa"
+      ],
+      "separatorAfter": false
+    },
+    {
+      "fields": [
+        "Observação"
       ],
       "separatorAfter": false
     }

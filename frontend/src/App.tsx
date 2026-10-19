@@ -22,6 +22,8 @@ import { PessoasScreen } from './screens/PessoasScreen';
 import { TitulosScreen } from './screens/TitulosScreen';
 import { PlanoContasScreen } from './screens/PlanoContasScreen';
 import { DespesasScreen } from './screens/DespesasScreen';
+import { ChequesScreen } from './screens/ChequesScreen';
+import { RemessasScreen } from './screens/RemessasScreen';
 import { LADO_A_PAGAR, LADO_A_RECEBER } from './adapters/titulos';
 import {
   OPERACOES_A_PAGAR,
@@ -298,6 +300,13 @@ export default function App() {
 
     if (route === 'despesas') {
       return <DespesasScreen database={database} onAviso={setNotice} />;
+    }
+
+    if (route === 'cheques') {
+      return <ChequesScreen database={database} onAviso={setNotice} />;
+    }
+    if (route === 'remessas') {
+      return <RemessasScreen database={database} onAviso={setNotice} />;
     }
 
     // Demais telas: ainda no `localStorage`.

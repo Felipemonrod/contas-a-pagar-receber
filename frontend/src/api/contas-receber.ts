@@ -61,3 +61,13 @@ export function receberContaReceber(
 export function simularRecebimento(id: number, data: string): Promise<SimulacaoApi> {
   return requisitar<SimulacaoApi>(`/contas-receber/${id}/simulacao?data=${data}`);
 }
+
+/**
+ * Titulos a receber vencidos e ainda em aberto.
+ *
+ * Sao exatamente os que a regra RN09 deixa mandar a protesto, entao a tela
+ * de Remessa usa esta lista para so oferecer titulos elegiveis.
+ */
+export function listarReceberInadimplentes(): Promise<ContaReceberApi[]> {
+  return requisitar<ContaReceberApi[]>('/contas-receber/inadimplentes');
+}
