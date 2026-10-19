@@ -31,11 +31,6 @@ export async function listarPessoas(papel: Papel, nome?: string): Promise<Pessoa
   return encontradas.filter(pessoa => pessoa.papeis.includes(papel));
 }
 
-/** Busca uma pessoa pelo id. Responde 404 quando nao existe. */
-export function obterPessoa(id: number): Promise<PessoaApi> {
-  return requisitar<PessoaApi>(`/pessoas/${id}`);
-}
-
 /** Cadastra uma pessoa. Responde 201 com o recurso criado. */
 export function criarPessoa(pessoa: PessoaNova): Promise<PessoaApi> {
   return requisitar<PessoaApi>('/pessoas', { metodo: 'POST', corpo: pessoa });
@@ -47,12 +42,4 @@ export function criarPessoa(pessoa: PessoaNova): Promise<PessoaApi> {
  */
 export function atualizarPessoa(id: number, pessoa: PessoaNova): Promise<PessoaApi> {
   return requisitar<PessoaApi>(`/pessoas/${id}`, { metodo: 'PUT', corpo: pessoa });
-}
-
-/**
- * Inativa uma pessoa (regra RN13: pessoa nunca e excluida do banco).
- * Responde 200 com o recurso ja inativado, e nao 204.
- */
-export function inativarPessoa(id: number): Promise<PessoaApi> {
-  return requisitar<PessoaApi>(`/pessoas/${id}`, { metodo: 'DELETE' });
 }

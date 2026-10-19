@@ -35,8 +35,3 @@ export function atualizarPlanoConta(
 ): Promise<PlanoContaApi> {
   return requisitar<PlanoContaApi>(`/plano-contas/${id}`, { metodo: 'PUT', corpo: conta });
 }
-
-/** Exclui uma categoria. Responde 204, e falha se ela tiver subcontas. */
-export function excluirPlanoConta(id: number): Promise<void> {
-  return requisitar<void>(`/plano-contas/${id}`, { metodo: 'DELETE' });
-}

@@ -8,6 +8,8 @@
 
 import { describe, expect, it } from 'vitest';
 import {
+  indiceDoEnderecoExibido,
+  indiceDoTelefoneExibido,
   juntarEndereco,
   pessoaParaRegistro,
   registroParaPessoa,
@@ -387,5 +389,35 @@ describe('campos que o formulario da tela nao tem', () => {
 
     expect(corpo.contato).toBeUndefined();
     expect(corpo.email).toBeUndefined();
+  });
+});
+
+describe('qual telefone e qual endereço a tela exibe', () => {
+  it('prefere o telefone comercial, qualquer que seja a posição', () => {
+    const telefones = [{ tipo: 'FAX' }, { tipo: 'COMERCIAL' }];
+
+    expect(indiceDoTelefoneExibido(telefones)).toBe(1);
+  });
+
+  it('sem comercial, usa o primeiro da lista', () => {
+    expect(indiceDoTelefoneExibido([{ tipo: 'CELULAR' }, { tipo: 'FAX' }])).toBe(0);
+  });
+
+  it('devolve -1 quando a pessoa não tem telefone', () => {
+    expect(indiceDoTelefoneExibido([])).toBe(-1);
+  });
+
+  it('prefere o endereço marcado como principal', () => {
+    const enderecos = [{ principal: false }, { principal: true }];
+
+    expect(indiceDoEnderecoExibido(enderecos)).toBe(1);
+  });
+
+  it('sem nenhum principal, usa o primeiro', () => {
+    expect(indiceDoEnderecoExibido([{ principal: false }])).toBe(0);
+  });
+
+  it('devolve -1 quando a pessoa não tem endereço', () => {
+    expect(indiceDoEnderecoExibido([])).toBe(-1);
   });
 });

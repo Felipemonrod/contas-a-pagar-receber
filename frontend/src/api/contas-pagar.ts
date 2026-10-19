@@ -34,16 +34,6 @@ export function listarContasPagar(filtro: FiltroContaPagar = {}): Promise<ContaP
   return requisitar<ContaPagarApi[]>(`/contas-pagar${consulta ? `?${consulta}` : ''}`);
 }
 
-/** Titulos vencidos que ainda estao em aberto. */
-export function listarInadimplentes(): Promise<ContaPagarApi[]> {
-  return requisitar<ContaPagarApi[]>('/contas-pagar/inadimplentes');
-}
-
-/** Busca um titulo pelo id. */
-export function obterContaPagar(id: number): Promise<ContaPagarApi> {
-  return requisitar<ContaPagarApi>(`/contas-pagar/${id}`);
-}
-
 /** Lanca um titulo novo. Responde 201 com o recurso criado. */
 export function criarContaPagar(conta: ContaPagarNova): Promise<ContaPagarApi> {
   return requisitar<ContaPagarApi>('/contas-pagar', { metodo: 'POST', corpo: conta });
@@ -74,9 +64,4 @@ export function quitarContaPagar(id: number, quitacao: QuitacaoNova): Promise<Co
  */
 export function simularQuitacao(id: number, data: string): Promise<SimulacaoApi> {
   return requisitar<SimulacaoApi>(`/contas-pagar/${id}/simulacao?data=${data}`);
-}
-
-/** Cancela um titulo. Responde 200 com o recurso cancelado, e nao 204. */
-export function cancelarContaPagar(id: number): Promise<ContaPagarApi> {
-  return requisitar<ContaPagarApi>(`/contas-pagar/${id}`, { metodo: 'DELETE' });
 }
