@@ -11,8 +11,8 @@
 
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { screens, type Database, type RecordData } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { screens, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
   atualizarCheque,
@@ -23,7 +23,6 @@ import {
 import { listarContasCorrentesAtivas } from '../api/bancos';
 import { listarPessoas } from '../api/pessoas';
 import { mensagemDoErro } from '../api/http';
-import { pessoaParaRegistro } from '../adapters/pessoas';
 import {
   acharContaCorrentePorIdentificacao,
   chequeParaRegistro,
@@ -42,10 +41,8 @@ type Janela =
   | null;
 
 export function ChequesScreen({
-  database,
   onAviso,
 }: {
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens.cheques;
@@ -63,15 +60,10 @@ export function ChequesScreen({
   const cheques = recurso.dados ?? [];
   const linhas = cheques.map(chequeParaRegistro);
 
-  /** Entrega ao formulario as listas vindas da API, no formato que ele le. */
-  const dadosDoFormulario: Database = {
-    ...database,
-    clientes: (clientes.dados ?? []).map(pessoa => pessoaParaRegistro(pessoa, 'CLIENTE')),
-    bancos: (contas.dados ?? []).map(conta => ({
-      id: String(conta.id),
-      'Conta Corrente': conta.identificacao,
-      Banco: conta.identificacao,
-    })),
+  /** Os dois campos de escolha do formulário, vindos da API. */
+  const listas: ListasDeEscolha = {
+    Cliente: (clientes.dados ?? []).map(pessoa => pessoa.nome),
+    'Conta Corrente': (contas.dados ?? []).map(conta => conta.identificacao),
   };
 
   function chequeSelecionado(): ChequeApi | undefined {
@@ -239,7 +231,7 @@ export function ChequesScreen({
           <RecordForm
             entity="cheques"
             record={janela.tipo === 'editar' ? janela.registro : undefined}
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

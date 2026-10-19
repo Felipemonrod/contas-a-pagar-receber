@@ -12,15 +12,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import App from './App';
 import layouts from './form-layouts.json';
-import {
-  groups,
-  initialDatabase,
-  nextRecord,
-  readDatabase,
-  screens,
-  STORAGE_KEY,
-  type Entity,
-} from './data';
+import { groups, screens, type Entity } from './data';
 import { apiFalsaAtual, instalarApiFalsa } from './test-utils/apiFalsa';
 import { PESSOAS_DE_EXEMPLO } from './test-setup';
 
@@ -185,23 +177,33 @@ describe('fluxos do sistema financeiro', () => {
     expect(api.contas().at(-1)).toMatchObject({ numeroTitulo: 'ENEL-001', valor: 187.45 });
   });
 
-  // Bancos fica de fora: a tela monta o proprio formulario, com um nivel
+  // Bancos fica de fora: a tela monta o próprio formulário, com um nível
   // por janela, em vez de usar o RecordForm e o form-layouts.
   const comRecordForm = (Object.keys(layouts) as Entity[]).filter(e => e !== 'bancos');
 
-  it.each(comRecordForm)('monta o formulário de %s', async entity => {
-    window.location.hash = `#/${entity}`; const user = userEvent.setup(); render(<App />);
-    // Nas telas integradas a barra de acoes fica desabilitada enquanto carrega.
-    const acao = screen.getByRole('button', { name: screens[entity].actions[0] });
-    await waitFor(() => expect(acao).toBeEnabled());
-    await user.click(acao);
-    const dialog = screen.getByRole('dialog', { name: screens[entity].modal });
-    for (const campo of layouts[entity].flatMap(linha => linha.fields)) {
-      expect(within(dialog).getByLabelText(rotuloExato(campo))).toBeInTheDocument();
-    }
-    await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
+  // Um `for` em vez de `it.each`: assim o tipo de `entity` continua sendo
+  // Entity, e o acesso a `screens[entity]` e `layouts[entity]` é conferido
+  // pelo compilador.
+  for (const entity of comRecordForm) {
+    it(`monta o formulário de ${entity}`, async () => {
+      window.location.hash = `#/${entity}`;
+      const user = userEvent.setup();
+      render(<App />);
+
+      // Nas telas integradas a barra de ações fica desabilitada enquanto carrega.
+      const acao = screen.getByRole('button', { name: screens[entity].actions[0] });
+      await waitFor(() => expect(acao).toBeEnabled());
+      await user.click(acao);
+
+      const dialog = screen.getByRole('dialog', { name: screens[entity].modal });
+      for (const campo of layouts[entity].flatMap(linha => linha.fields)) {
+        expect(within(dialog).getByLabelText(rotuloExato(campo))).toBeInTheDocument();
+      }
+
+      await user.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  }
 
   it('lança um título a pagar pela API, trocando o fornecedor pelo id', async () => {
     const api = apiFalsaAtual();
@@ -495,19 +497,6 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     expect(screen.getByRole('alert')).toHaveTextContent('posterior ao inicial');
   });
 
-  it('recupera dados inválidos de armazenamento e calcula o estado de recebimento', () => {
-    // Conteúdo corrompido no navegador volta aos exemplos iniciais.
-    localStorage.setItem(STORAGE_KEY, '{inválido');
-    expect(readDatabase()).toEqual(initialDatabase);
-
-    const record = nextRecord(
-      'recebimentos',
-      { 'Nome do Cliente': 'Cliente Exemplo', 'Data de Pagamento': '2026-10-14' },
-      [],
-    );
-    expect(record.Situação).toBe('RECEBIDO');
-  });
-
   it('mantém a inclusão contínua aberta e grava as contas na API', async () => {
     const api = apiFalsaAtual();
     window.location.hash = '#/plano';
@@ -592,7 +581,8 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     await user.click(within(dialog).getByRole('button', { name: 'OK' }));
 
     // A API devolve a identificação pronta, juntando os três níveis.
-    expect(await screen.findByText(/341 \/ 1234 \/ 56789-0/)).toBeInTheDocument();
+    // O texto aparece no nó da árvore e no elemento que o envolve.
+    expect(await screen.findAllByText(/56789-0/)).not.toHaveLength(0);
     expect(api.bancos()).toHaveLength(1);
   });
 

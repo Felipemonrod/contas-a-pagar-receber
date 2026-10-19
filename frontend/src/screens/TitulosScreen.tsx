@@ -14,12 +14,11 @@
 
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { normalize, screens, type Database, type Entity, type RecordData } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { normalize, screens, type Entity, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import { listarPessoas } from '../api/pessoas';
 import { mensagemDoErro } from '../api/http';
-import { pessoaParaRegistro } from '../adapters/pessoas';
 import {
   acharPessoaPorNome,
   registroParaTitulo,
@@ -54,14 +53,12 @@ export function TitulosScreen({
   entity,
   lado,
   operacoes,
-  database,
   onAviso,
 }: {
   /** 'pagamentos' ou 'recebimentos'. */
   entity: Entity;
   lado: ConfiguracaoDoLado;
   operacoes: OperacoesDeTitulo;
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens[entity];
@@ -91,17 +88,9 @@ export function TitulosScreen({
     : titulos;
   const linhas = encontrados.map(titulo => tituloParaRegistro(titulo, lado));
 
-  /**
-   * Entrega ao formulario a lista de pessoas vinda da API, no formato que
-   * ele ja sabe ler. Assim o campo de escolha passa a oferecer os cadastros
-   * reais, sem precisar mudar o RecordForm.
-   */
-  const comoLinhas = (pessoas.dados ?? []).map(pessoa =>
-    pessoaParaRegistro(pessoa, lado.papel),
-  );
-  const dadosDoFormulario: Database = {
-    ...database,
-    ...(lado.papel === 'FORNECEDOR' ? { fornecedores: comoLinhas } : { clientes: comoLinhas }),
+  /** O campo de pessoa oferece os cadastros reais, vindos da API. */
+  const listas: ListasDeEscolha = {
+    [lado.campoDaPessoa]: (pessoas.dados ?? []).map(pessoa => pessoa.nome),
   };
 
   function abrirEdicao(id = selecionado) {
@@ -240,7 +229,7 @@ export function TitulosScreen({
           <RecordForm
             entity={entity}
             record={janela.tipo === 'editar' ? janela.registro : undefined}
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

@@ -13,8 +13,8 @@
 
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { screens, type Database } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { screens } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import { criarLancamento, estornarLancamento, listarLancamentos } from '../api/lancamentos';
 import { listarAnaliticas } from '../api/plano-contas';
@@ -31,10 +31,8 @@ import { Carregando, Erro, Vazio } from '../ui/estados';
 type Janela = { tipo: 'incluir' } | { tipo: 'estornar'; lancamento: LancamentoApi } | null;
 
 export function LancamentosScreen({
-  database,
   onAviso,
 }: {
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens.lancamentos;
@@ -50,14 +48,11 @@ export function LancamentosScreen({
   const lancamentos = recurso.dados ?? [];
   const linhas = lancamentos.map(lancamentoParaRegistro);
 
-  /** Entrega as contas analíticas ao formulário, no formato que ele lê. */
-  const dadosDoFormulario: Database = {
-    ...database,
-    plano: (contas.dados ?? []).map(conta => ({
-      id: String(conta.id),
-      'Nova Conta': conta.codigo,
-      'Descrição da Conta': rotuloDaConta(conta),
-    })),
+  /** Os dois lados da partida dobrada oferecem as mesmas contas. */
+  const rotulos = (contas.dados ?? []).map(rotuloDaConta);
+  const listas: ListasDeEscolha = {
+    'Conta de Crédito': rotulos,
+    'Conta de Débito': rotulos,
   };
 
   function acionar(rotulo: string) {
@@ -168,7 +163,7 @@ export function LancamentosScreen({
         <Modal title={config.modal} onClose={() => setJanela(null)}>
           <RecordForm
             entity="lancamentos"
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

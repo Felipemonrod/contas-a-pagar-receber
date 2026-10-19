@@ -13,8 +13,8 @@
 
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { screens, type Database } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { screens } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
   baixarRemessa,
@@ -46,10 +46,8 @@ function hoje(): string {
 }
 
 export function RemessasScreen({
-  database,
   onAviso,
 }: {
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens.remessas;
@@ -67,23 +65,10 @@ export function RemessasScreen({
   const remessas = recurso.dados ?? [];
   const linhas = remessas.map(remessaParaRegistro);
 
-  /**
-   * Entrega ao formulario os cartorios e os titulos elegiveis, no formato
-   * que o RecordForm ja le.
-   */
-  const dadosDoFormulario: Database = {
-    ...database,
-    cartorios: (cartorios.dados ?? []).map(cartorio => ({
-      id: String(cartorio.id),
-      'Nome do Cartório': cartorio.nome,
-      Contato: cartorio.contato ?? '',
-      Telefone: cartorio.telefone ?? '',
-    })),
-    recebimentos: (elegiveis.dados ?? []).map(titulo => ({
-      id: String(titulo.id),
-      'Número do Título': rotuloDoTitulo(titulo),
-      'Nome do Cliente': titulo.pessoaNome,
-    })),
+  /** Cartórios e, por causa da RN09, só os títulos vencidos em aberto. */
+  const listas: ListasDeEscolha = {
+    'Cartório': (cartorios.dados ?? []).map(cartorio => cartorio.nome),
+    'Número do Título': (elegiveis.dados ?? []).map(rotuloDoTitulo),
   };
 
   function remessaSelecionada(): RemessaApi | undefined {
@@ -250,7 +235,7 @@ export function RemessasScreen({
         <Modal title={config.modal} onClose={() => setJanela(null)}>
           <RecordForm
             entity="remessas"
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={enviar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

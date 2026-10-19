@@ -11,7 +11,6 @@ import type {
   AgenciaApi,
   AgenciaNova,
   BancoApi,
-  BancoItemApi,
   BancoNovo,
   ContaCorrenteApi,
   ContaCorrenteNova,
@@ -21,11 +20,6 @@ import type {
 export function listarBancos(nome?: string): Promise<BancoApi[]> {
   const consulta = nome && nome.trim() ? `?nome=${encodeURIComponent(nome.trim())}` : '';
   return requisitar<BancoApi[]>(`/bancos${consulta}`);
-}
-
-/** Lista plana de bancos, para campos de escolha. */
-export function listarBancosParaSelecao(): Promise<BancoItemApi[]> {
-  return requisitar<BancoItemApi[]>('/bancos/selecao');
 }
 
 export function criarBanco(banco: BancoNovo): Promise<BancoApi> {

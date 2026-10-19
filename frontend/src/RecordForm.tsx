@@ -12,22 +12,18 @@
 
 import { useId, useState, type FormEvent } from 'react';
 import formLayouts from './form-layouts.json';
-import { screens, type Database, type Entity, type RecordData } from './data';
+import { screens, type Entity, type RecordData } from './data';
 import { Button } from './components';
 import { TIPOS_DE_TITULO } from './adapters/titulos';
+
+/** Opções de um campo de escolha, indexadas pelo rótulo que a tela usa. */
+export type ListasDeEscolha = Record<string, string[]>;
 
 /** Unidades da federação, para o campo Estado. */
 const ESTADOS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
   'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
   'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-];
-
-/** Bancos que o protótipo já trazia preenchidos. */
-const BANCOS_PADRAO = [
-  '001 - Banco do Brasil',
-  '237 - Banco Bradesco',
-  '104 - Caixa Econômica Federal',
 ];
 
 /** Campos que, além do principal, a tela exige. */
@@ -56,7 +52,7 @@ const ehData = (rotulo: string) =>
 export function RecordForm({
   entity,
   record,
-  database,
+  listas = {},
   onSave,
   onClose,
   bankOnly = false,
@@ -66,7 +62,15 @@ export function RecordForm({
 }: {
   entity: Entity;
   record?: RecordData;
-  database: Database;
+  /**
+   * Opções dos campos de escolha, indexadas pelo rótulo do campo.
+   *
+   * Cada tela passa só o que o seu formulário precisa, já vindo da API.
+   * Antes isto era um `Database` inteiro, de quando os dados moravam no
+   * navegador; as telas montavam um objeto de mentira só para preencher
+   * dois campos.
+   */
+  listas?: ListasDeEscolha;
   onSave: (values: Record<string, string>) => void;
   onClose: () => void;
   /** Modo reduzido do cadastro de banco, com apenas número e nome. */
@@ -102,51 +106,19 @@ export function RecordForm({
    * Devolve as opções de um campo de escolha, ou `null` quando o campo é de
    * digitação livre.
    *
-   * Algumas listas vêm dos outros cadastros (`database`), e é isso que liga
-   * as telas entre si: o fornecedor escolhido num título é um fornecedor
-   * cadastrado, e não um texto digitado à mão.
+   * Há dois tipos de lista. As fixas, que não dependem de nada — as unidades
+   * da federação e os tipos de título que a API aceita. E as que vêm da API,
+   * que a tela carrega e passa em `listas`, indexadas pelo rótulo do campo.
+   *
+   * É isso que liga as telas entre si: o fornecedor escolhido num título é um
+   * fornecedor cadastrado, e não um texto digitado à mão.
    */
   function opcoes(rotulo: string): string[] | null {
     if (rotulo === 'Estado') return ESTADOS;
     // A API aceita apenas estes três tipos (migration V2 do back-end).
     if (rotulo === 'Tipo') return Object.values(TIPOS_DE_TITULO);
 
-    // No cadastro reduzido de banco, "Banco" é digitado, e não escolhido.
-    if (bankOnly) return null;
-
-    if (rotulo === 'Banco') {
-      return [...new Set([...BANCOS_PADRAO, ...database.bancos.map(b => b.Banco)])];
-    }
-    // No cheque, a conta corrente vem de /contas-correntes/ativas, ja
-    // formatada pela API como '341 / 1234 / 56789-0'.
-    if (rotulo === 'Conta Corrente' && entity === 'cheques') {
-      return database.bancos.map(c => c['Conta Corrente']);
-    }
-    // Na remessa, o titulo e escolhido entre os vencidos em aberto: a
-    // regra RN09 nao deixa protestar nenhum outro.
-    if (rotulo === 'Número do Título' && entity === 'remessas') {
-      return database.recebimentos.map(t => t['Número do Título']);
-    }
-    if (rotulo === 'Cartório') return database.cartorios.map(c => c['Nome do Cartório']);
-    if (rotulo === 'Nome do Fornecedor') return database.fornecedores.map(f => f.Fornecedor);
-    if (rotulo === 'Nome do Cliente' || (rotulo === 'Cliente' && entity === 'cheques')) {
-      return database.clientes.map(c => c.Cliente);
-    }
-    // As duas contas do lancamento vem de /plano-contas/analiticas. Antes
-    // havia dois nomes fixos aqui, 'Fornecedores' e 'Duplicatas a Pagar',
-    // herdados da versao em localStorage: hoje nao casam com conta nenhuma
-    // e so dariam erro ao gravar.
-    if (rotulo.startsWith('Conta de ')) {
-      return database.plano.map(c => c['Descrição da Conta']);
-    }
-    // As contas superiores possiveis sao as que ja existem no plano. A tela
-    // do plano de contas preenche esta lista com o que veio da API.
-    // Na tela de despesas, "Lançamento" é a categoria do plano de contas:
-    // era um número solto no livro, e na API é `planoContaId`.
-    if (rotulo === 'Lançamento') return database.plano.map(c => c['Descrição da Conta']);
-    if (rotulo === 'Conta Superior') return database.plano.map(c => c['Nova Conta']);
-
-    return null;
+    return listas[rotulo] ?? null;
   }
 
   /**

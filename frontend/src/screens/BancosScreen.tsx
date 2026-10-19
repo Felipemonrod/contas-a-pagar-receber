@@ -14,7 +14,7 @@
 
 import { useState } from 'react';
 import { Button, Modal } from '../components';
-import { screens, displayValue, type Database } from '../data';
+import { screens, displayValue } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
   criarAgencia,
@@ -38,12 +38,7 @@ type Janela =
 /** Quantos pixels cada nivel recua. */
 const RECUO_POR_NIVEL = 22;
 
-export function BancosScreen({
-  onAviso,
-}: {
-  database: Database;
-  onAviso: (mensagem: string) => void;
-}) {
+export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void }) {
   const config = screens.bancos;
 
   const [janela, setJanela] = useState<Janela>(null);

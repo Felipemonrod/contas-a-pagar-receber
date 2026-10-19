@@ -9,7 +9,7 @@
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
 import { RecordForm } from '../RecordForm';
-import { screens, type Database, type RecordData } from '../data';
+import { screens, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
   atualizarCartorio,
@@ -47,13 +47,7 @@ function registroParaCartorio(valores: Record<string, string>) {
   };
 }
 
-export function CartoriosScreen({
-  database,
-  onAviso,
-}: {
-  database: Database;
-  onAviso: (mensagem: string) => void;
-}) {
+export function CartoriosScreen({ onAviso }: { onAviso: (mensagem: string) => void }) {
   const config = screens.cartorios;
 
   const [janela, setJanela] = useState<Janela>(null);
@@ -176,7 +170,6 @@ export function CartoriosScreen({
           <RecordForm
             entity="cartorios"
             record={janela.tipo === 'editar' ? janela.registro : undefined}
-            database={database}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

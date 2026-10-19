@@ -8,8 +8,8 @@
 
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { screens, type Database, type RecordData } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { screens, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
   atualizarDespesa,
@@ -38,10 +38,8 @@ type Janela =
   | null;
 
 export function DespesasScreen({
-  database,
   onAviso,
 }: {
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens.despesas;
@@ -60,14 +58,9 @@ export function DespesasScreen({
   const despesas = recurso.dados ?? [];
   const linhas = despesas.map(despesaParaRegistro);
 
-  /** Entrega as categorias ao formulário no formato que ele já lê. */
-  const dadosDoFormulario: Database = {
-    ...database,
-    plano: (categorias.dados ?? []).map(conta => ({
-      id: String(conta.id),
-      'Nova Conta': conta.codigo,
-      'Descrição da Conta': rotuloDaCategoria(conta),
-    })),
+  /** Só categorias analíticas: conta consolidada não aceita lançamento. */
+  const listas: ListasDeEscolha = {
+    'Lançamento': (categorias.dados ?? []).map(rotuloDaCategoria),
   };
 
   /** Devolve a despesa selecionada, avisando quando não há nenhuma. */
@@ -218,7 +211,7 @@ export function DespesasScreen({
           <RecordForm
             entity="despesas"
             record={janela.tipo === 'editar' ? janela.registro : undefined}
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

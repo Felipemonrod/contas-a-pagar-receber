@@ -13,8 +13,8 @@
 
 import { useState } from 'react';
 import { Button, Modal } from '../components';
-import { RecordForm } from '../RecordForm';
-import { screens, type Database, type RecordData } from '../data';
+import { RecordForm, type ListasDeEscolha } from '../RecordForm';
+import { screens, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import { criarPlanoConta, atualizarPlanoConta, listarArvore } from '../api/plano-contas';
 import { mensagemDoErro } from '../api/http';
@@ -32,10 +32,8 @@ type Janela = { tipo: 'incluir' } | { tipo: 'editar'; conta: PlanoContaApi } | n
 const RECUO_POR_NIVEL = 22;
 
 export function PlanoContasScreen({
-  database,
   onAviso,
 }: {
-  database: Database;
   onAviso: (mensagem: string) => void;
 }) {
   const config = screens.plano;
@@ -152,14 +150,9 @@ export function PlanoContasScreen({
     );
   }
 
-  /**
-   * O formulário oferece as contas existentes como superior possível.
-   * Entregamos a lista pelo `database`, no formato que o RecordForm já lê,
-   * para não precisar mudá-lo.
-   */
-  const dadosDoFormulario: Database = {
-    ...database,
-    plano: todas.map(({ conta }) => planoContaParaRegistro(conta)),
+  /** Qualquer conta existente pode ser a superior de uma nova. */
+  const listas: ListasDeEscolha = {
+    'Conta Superior': todas.map(({ conta }) => conta.codigo),
   };
 
   const registroEmEdicao: RecordData | undefined =
@@ -189,7 +182,7 @@ export function PlanoContasScreen({
           <RecordForm
             entity="plano"
             record={registroEmEdicao}
-            database={dadosDoFormulario}
+            listas={listas}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}

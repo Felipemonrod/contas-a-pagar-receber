@@ -14,7 +14,7 @@
 import { useState } from 'react';
 import { Button, DataTable, Modal } from '../components';
 import { RecordForm } from '../RecordForm';
-import { screens, type Database, type Entity, type RecordData } from '../data';
+import { screens, type Entity, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import { atualizarPessoa, criarPessoa, listarPessoas } from '../api/pessoas';
 import { mensagemDoErro } from '../api/http';
@@ -32,15 +32,12 @@ type Janela =
 export function PessoasScreen({
   entity,
   papel,
-  database,
   onAviso,
 }: {
   /** Tela correspondente em `screens`: 'clientes' ou 'fornecedores'. */
   entity: Entity;
   /** Papel filtrado nesta tela. */
   papel: Papel;
-  /** Dados locais, usados pelo formulario para montar algumas listas. */
-  database: Database;
   /** Mostra um aviso curto na barra inferior da aplicacao. */
   onAviso: (mensagem: string) => void;
 }) {
@@ -221,7 +218,6 @@ export function PessoasScreen({
           <RecordForm
             entity={entity}
             record={janela.tipo === 'editar' ? janela.registro : undefined}
-            database={database}
             onSave={gravar}
             onClose={() => setJanela(null)}
             mensagemErro={erroDoFormulario}
