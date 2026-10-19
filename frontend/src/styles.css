@@ -199,3 +199,8 @@ tbody .empty-state { height: 80px; padding: 20px; text-align: center; color: #60
 @media (max-width: 760px) {
   .posicao-grid, .saldos { grid-template-columns: 1fr; }
 }
+
+/* Cheque: situação atual e destaque do depósito vencido. */
+.situacao-atual { margin: 2px 0 4px; display: flex; align-items: center; gap: 10px; }
+.marca-vencido { padding: 1px 8px; font-size: 11px; color: #850d16; background: #f6e3e5; border: 1px solid #c58b92; }
+.aviso-vencidos { margin-top: 18px; padding: 10px 16px; color: #850d16; background: #f6e3e5; border: 1px solid #c58b92; }
