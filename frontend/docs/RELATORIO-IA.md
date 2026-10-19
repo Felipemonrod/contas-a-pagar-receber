@@ -639,3 +639,83 @@ gravação. Foram removidos; as opções agora saem só de
 do livro, os que têm endpoint estão todos cobertos.
 
 Testes: 116. Typecheck limpo, build OK, nenhum `any`.
+
+---
+
+## 15. Quinta etapa: as operações que faltavam nas telas
+
+Terminada a integração, uma varredura tela a tela comparando a barra de
+botões com o que a API oferece mostrou que **a leitura e a gravação estavam
+completas, mas algumas operações de baixa não tinham botão**. O contrato
+expunha os endpoints; as telas não os alcançavam.
+
+### 15.1 O que faltava
+
+| Tela | Faltava | Endpoint que já existia |
+| --- | --- | --- |
+| Pagamentos / Recebimentos | Cancelar título | `DELETE /contas-{pagar,receber}/{id}` |
+| Clientes / Fornecedores | Inativar pessoa | `DELETE /pessoas/{id}` |
+| Plano de Contas | Excluir categoria | `DELETE /plano-contas/{id}` |
+| Bancos | Editar e excluir banco e agência | `PUT`/`DELETE` em `/bancos` e `/agencias` |
+| Cheque Pré-Datado | Filtrar os a depositar | `GET /cheques/a-depositar` |
+
+### 15.2 "Excluir" quase nunca exclui
+
+O ponto que mais exigiu cuidado na redação das telas: nos três casos, o
+verbo `DELETE` do HTTP **não** apaga o registro.
+
+- Título: a situação vira `CANCELADA` e a linha **continua na lista**. O
+  histórico depende dela existir.
+- Pessoa: fica `ativo = false`. Apagar quebraria todos os títulos que
+  apontam para ela (RN13).
+- Lançamento (já descrito na seção 14.4): vira `ESTORNADO`.
+
+Chamar esses botões de "Excluir" ensinaria o usuário errado. Então a tela de
+títulos diz **Cancelar**, a de pessoas diz **Inativar**, e cada janela de
+confirmação explica o que vai acontecer de fato — *"Ele continuará na lista,
+com a situação CANCELADA"*, *"Ele não é excluído, porque os títulos já
+lançados dependem dele"*. Só no Plano de Contas o botão é **Exclusão**,
+porque ali a linha some mesmo.
+
+### 15.3 Recusas tratadas, não evitadas
+
+Duas recusas do servidor não dá para prever no navegador, então a tela
+**deixa a API responder** e mostra a mensagem dela:
+
+- Cancelar título que já tem pagamento → 422 *"Titulo com pagamento
+  registrado nao pode ser cancelado"* (RN11).
+- Excluir banco que tem agência → 409 *"O banco 'Banco Itau S/A' possui 1
+  agencia(s) e nao pode ser excluido"*.
+
+Uma terceira é evitada na origem: no Plano de Contas só a **folha** da
+árvore é selecionável — clicar num nó com subcontas abre e fecha o ramo.
+Como não dá para selecionar uma conta sintética, não dá para pedir a
+exclusão que o servidor recusaria.
+
+### 15.4 Um filtro que o livro não tem, mas o fluxo pede
+
+`GET /cheques/a-depositar` devolve os cheques **em carteira com a data de
+depósito já vencida** — exatamente a fila de trabalho de quem opera a tela.
+Virou um seletor "Todos os cheques / Só os a depositar", com o texto vazio
+dizendo o critério: *"Nenhum cheque em carteira com a data de depósito
+vencida"*. O usuário não precisa adivinhar por que a lista está vazia.
+
+### 15.5 Validação
+
+Cada operação foi exercida no navegador contra o back-end real e o efeito
+conferido direto na API, não só na tela:
+
+- Cancelar `TESTE-FRONT-01` → `GET /contas-pagar` passou a trazer
+  `situacao: CANCELADA`, com a linha ainda na lista.
+- Cancelar `DUP-123456`, que está `PAGA` → a tela mostrou a recusa da API e
+  o título continuou `PAGA`.
+- Inativar `Cliente Teste Campos SA` → `GET /pessoas?papel=CLIENTE` passou a
+  trazer `ativo: false`.
+- Criar e excluir a categoria `21.99` → sumiu da árvore.
+- Criar um cheque com depósito em 05/12 e outro em 10/10 → o filtro mostrou
+  **só** o segundo, com o aviso de um cheque vencido.
+
+A API falsa dos testes ganhou os mesmos endpoints e as mesmas recusas, para
+os testes cobrirem o caminho de erro e não só o feliz.
+
+Testes: 120. Typecheck limpo, build OK, nenhum `any`.

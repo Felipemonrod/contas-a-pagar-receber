@@ -69,6 +69,22 @@ com o valor real da fatura.
 `localStorage`: as cinco que faltavam foram integradas quando o back-end
 implementou os capítulos 9, 10, 12, 16 e 17 do livro.
 
+### Baixas: o que cada botão faz de verdade
+
+Nos títulos, nas pessoas e nos lançamentos, o `DELETE` da API **não apaga o
+registro** — ele muda a situação, porque o histórico depende de a linha
+continuar existindo. Os botões dizem o que acontece:
+
+| Botão | Tela | Efeito |
+|---|---|---|
+| Cancelar | Pagamentos, Recebimentos | situação vira `CANCELADA`, a linha fica na lista |
+| Inativar | Clientes, Fornecedores | fica `ativo = false`, os títulos continuam válidos |
+| Excluir | Lançamentos | vira `ESTORNADO`, o lançamento fica na lista |
+| Exclusão | Plano de Contas | aí sim a categoria some, se não tiver subcontas |
+
+Duas recusas vêm do servidor e aparecem como ele as escreve: cancelar título
+que já tem pagamento (regra RN11) e excluir banco que ainda tem agência.
+
 Não há autenticação, conciliação nem integração bancária; nenhuma ação
 executa pagamento de verdade.
 
@@ -103,12 +119,12 @@ Os detalhes e as decisões estão em `docs/RELATORIO-IA.md`.
 
 ## Arquivos
 
-- `src/App.tsx`: navegação, telas, ações e relatórios.
+- `src/App.tsx`: navegação por hash, título da página e faixa de avisos.
 - `src/components.tsx`: barra lateral, botões, tabelas e diálogo.
 - `src/RecordForm.tsx`: campos e validações dos formulários.
 - `src/form-layouts.json`: agrupamento dos campos extraído do Figma.
-- `src/data.ts`: configuração das telas, exemplos e persistência local.
-- `src/api/`: tipos do contrato, cliente HTTP e chamadas de `/api/pessoas`.
+- `src/data.ts`: configuração das telas, colunas e ações da barra.
+- `src/api/`: tipos do contrato, cliente HTTP e uma função por endpoint.
 - `src/adapters/`: tradução entre o formato da tela e o da API.
 - `src/hooks/useRecurso.ts`: estado de carregando, erro e dados de uma busca.
 - `src/ui/estados.tsx`: avisos de carregando, vazio e erro.
