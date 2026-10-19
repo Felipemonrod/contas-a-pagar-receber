@@ -71,3 +71,12 @@ export function simularRecebimento(id: number, data: string): Promise<SimulacaoA
 export function listarReceberInadimplentes(): Promise<ContaReceberApi[]> {
   return requisitar<ContaReceberApi[]>('/contas-receber/inadimplentes');
 }
+
+/**
+ * CANCELA o título; não exclui.
+ * Responde 200 com o recurso em situação CANCELADA, e 422 se já houver
+ * recebimento registrado (regra RN11).
+ */
+export function cancelarContaReceber(id: number): Promise<ContaReceberApi> {
+  return requisitar<ContaReceberApi>(`/contas-receber/${id}`, { metodo: 'DELETE' });
+}

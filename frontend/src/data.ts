@@ -111,7 +111,7 @@ export const screens: Record<Entity, ScreenConfig> = {
     description: 'Cadastro e manutenção de clientes.',
     modal: 'Cadastro de Cliente',
     primary: 'Cliente',
-    actions: ['Incluir', 'Editar', 'Localizar', 'Relatório'],
+    actions: ['Incluir', 'Editar', 'Inativar', 'Localizar', 'Relatório'],
     columns: [
       col('Registro', 90),
       col('Cliente', 250),
@@ -128,7 +128,7 @@ export const screens: Record<Entity, ScreenConfig> = {
     description: 'Cadastro e manutenção de fornecedores.',
     modal: 'Cadastro de Fornecedor',
     primary: 'Fornecedor',
-    actions: ['Incluir', 'Editar', 'Localizar', 'Relatório'],
+    actions: ['Incluir', 'Editar', 'Inativar', 'Localizar', 'Relatório'],
     columns: [
       col('Registro', 90),
       col('Fornecedor', 250),
@@ -215,7 +215,7 @@ export const screens: Record<Entity, ScreenConfig> = {
     description: 'Lançamento, quitação e acompanhamento de títulos a pagar.',
     modal: 'Pagamento',
     primary: 'Nome do Fornecedor',
-    actions: ['Incluir', 'Editar', 'Quitar', 'Localizar'],
+    actions: ['Incluir', 'Editar', 'Quitar', 'Cancelar', 'Localizar'],
     columns: [
       col('Número do Título', 140, 'Título'),
       col('Nome do Fornecedor', 230, 'Fornecedor'),
@@ -233,7 +233,7 @@ export const screens: Record<Entity, ScreenConfig> = {
     description: 'Lançamento, recebimento e acompanhamento de títulos a receber.',
     modal: 'Recebimento',
     primary: 'Nome do Cliente',
-    actions: ['Incluir', 'Editar', 'Receber', 'Localizar'],
+    actions: ['Incluir', 'Editar', 'Receber', 'Cancelar', 'Localizar'],
     columns: [
       col('Número do Título', 140, 'Título'),
       col('Nome do Cliente', 230, 'Cliente'),

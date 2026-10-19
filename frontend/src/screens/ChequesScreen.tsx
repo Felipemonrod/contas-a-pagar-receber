@@ -19,6 +19,7 @@ import {
   criarCheque,
   excluirCheque,
   listarCheques,
+  listarChequesADepositar,
 } from '../api/cheques';
 import { listarContasCorrentesAtivas } from '../api/bancos';
 import { listarPessoas } from '../api/pessoas';
@@ -51,8 +52,14 @@ export function ChequesScreen({
   const [selecionado, setSelecionado] = useState<string>();
   const [salvando, setSalvando] = useState(false);
   const [erroDoFormulario, setErroDoFormulario] = useState('');
+  // Quando ligado, a lista vem de /cheques/a-depositar: os que estão em
+  // carteira com a data de depósito já vencida.
+  const [soADepositar, setSoADepositar] = useState(false);
 
-  const recurso = useRecurso(() => listarCheques(), 'cheques');
+  const recurso = useRecurso(
+    () => (soADepositar ? listarChequesADepositar() : listarCheques()),
+    `cheques:${soADepositar ? 'a-depositar' : 'todos'}`,
+  );
   // O emitente precisa ter o papel CLIENTE (regra da API).
   const clientes = useRecurso(() => listarPessoas('CLIENTE'), 'pessoas:CLIENTE');
   const contas = useRecurso(() => listarContasCorrentesAtivas(), 'contas-correntes:ativas');
@@ -168,7 +175,15 @@ export function ChequesScreen({
       return <Erro mensagem={recurso.erro} onTentarNovamente={recurso.recarregar} />;
     }
     if (!linhas.length) {
-      return <Vazio mensagem="Nenhum cheque cadastrado. Use Incluir para cadastrar o primeiro." />;
+      return (
+        <Vazio
+          mensagem={
+            soADepositar
+              ? 'Nenhum cheque em carteira com a data de depósito vencida.'
+              : 'Nenhum cheque cadastrado. Use Incluir para cadastrar o primeiro.'
+          }
+        />
+      );
     }
     return (
       <DataTable
@@ -199,6 +214,18 @@ export function ChequesScreen({
               {rotulo}
             </Button>
           ))}
+        </div>
+
+        <div className="order-control">
+          <label htmlFor="cheques-filtro">Exibir</label>
+          <select
+            id="cheques-filtro"
+            value={soADepositar ? 'a-depositar' : 'todos'}
+            onChange={evento => setSoADepositar(evento.target.value === 'a-depositar')}
+          >
+            <option value="todos">Todos os cheques</option>
+            <option value="a-depositar">Só os a depositar</option>
+          </select>
         </div>
       </div>
 

@@ -46,3 +46,21 @@ export function listarContasCorrentesAtivas(): Promise<ContaCorrenteApi[]> {
 export function desativarContaCorrente(id: number): Promise<ContaCorrenteApi> {
   return requisitar<ContaCorrenteApi>(`/contas-correntes/${id}`, { metodo: 'DELETE' });
 }
+
+export function atualizarBanco(id: number, banco: BancoNovo): Promise<BancoApi> {
+  return requisitar<BancoApi>(`/bancos/${id}`, { metodo: 'PUT', corpo: banco });
+}
+
+/** Exclui o banco. Falha se ele tiver agências. */
+export function excluirBanco(id: number): Promise<void> {
+  return requisitar<void>(`/bancos/${id}`, { metodo: 'DELETE' });
+}
+
+export function atualizarAgencia(id: number, agencia: AgenciaNova): Promise<AgenciaApi> {
+  return requisitar<AgenciaApi>(`/agencias/${id}`, { metodo: 'PUT', corpo: agencia });
+}
+
+/** Exclui a agência. Falha se ela tiver contas correntes. */
+export function excluirAgencia(id: number): Promise<void> {
+  return requisitar<void>(`/agencias/${id}`, { metodo: 'DELETE' });
+}

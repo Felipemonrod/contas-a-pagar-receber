@@ -609,4 +609,142 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('codigo');
     expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
+
+  it('inativa um cliente, que a API não exclui', async () => {
+    const api = apiFalsaAtual();
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(await screen.findByText('Editora Érica Ltda.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Selecionar Editora Érica Ltda.' }));
+    await user.click(screen.getByRole('button', { name: 'Inativar' }));
+
+    const janela = await screen.findByRole('dialog', { name: 'Inativar Registro' });
+    await user.click(within(janela).getByRole('button', { name: 'Sim, inativar' }));
+
+    // O registro continua no banco, só marcado como inativo (RN13).
+    await waitFor(() => {
+      const erica = api.pessoas().find(p => p.nome === 'Editora Érica Ltda.');
+      expect(erica?.ativo).toBe(false);
+    });
+  });
+
+  it('exclui uma categoria do plano de contas', async () => {
+    const api = apiFalsaAtual();
+    const user = userEvent.setup();
+    window.location.hash = '#/plano';
+    render(<App />);
+
+    expect(await screen.findByText(/Energia Eletrica/)).toBeInTheDocument();
+    const antes = api.planoContas().length;
+
+    await user.click(screen.getByRole('button', { name: /21\.03.*Energia Eletrica/ }));
+    await user.click(screen.getByRole('button', { name: 'Exclusão' }));
+
+    const janela = await screen.findByRole('dialog', { name: 'Confirmar Exclusão' });
+    await user.click(within(janela).getByRole('button', { name: 'Sim, excluir' }));
+
+    await waitFor(() => expect(api.planoContas()).toHaveLength(antes - 1));
+    expect(api.planoContas().some(c => c.codigo === '21.03')).toBe(false);
+  });
+
+  it('cancela um título em aberto e recusa cancelar um já quitado', async () => {
+    const api = instalarApiFalsa(PESSOAS_DE_EXEMPLO, [
+      {
+        numeroTitulo: 'CANC-1',
+        pessoaId: 4,
+        tipoTitulo: 'DUPLICATA',
+        valor: 300,
+        emissao: '2026-10-01',
+        vencimento: '2026-10-30',
+      },
+    ]);
+    const user = userEvent.setup();
+    window.location.hash = '#/pagamentos';
+    render(<App />);
+
+    expect(await screen.findByText('CANC-1')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /Selecionar/ }));
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+
+    let janela = await screen.findByRole('dialog', { name: 'Cancelar Título' });
+    await user.click(within(janela).getByRole('button', { name: 'Sim, cancelar' }));
+
+    // Cancelar não exclui: o título continua na lista, com outra situação.
+    await waitFor(() => expect(api.contas()[0].situacao).toBe('CANCELADA'));
+    expect(api.contas()).toHaveLength(1);
+
+    // Agora com pagamento registrado: a API recusa (regra RN11).
+    await user.click(screen.getByRole('button', { name: /Selecionar/ }));
+    await user.click(screen.getByRole('button', { name: 'Quitar' }));
+    janela = await screen.findByRole('dialog', { name: 'Quitação de Título' });
+    await user.click(within(janela).getByRole('button', { name: 'Confirmar' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+    await user.click(screen.getByRole('button', { name: /Selecionar/ }));
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    janela = await screen.findByRole('dialog', { name: 'Cancelar Título' });
+    await user.click(within(janela).getByRole('button', { name: 'Sim, cancelar' }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent('nao pode ser cancelado');
+  });
+
+  it('edita um banco pela árvore', async () => {
+    const api = apiFalsaAtual();
+    const user = userEvent.setup();
+    window.location.hash = '#/bancos';
+    render(<App />);
+
+    const incluir = await screen.findByRole('button', { name: 'Incluir Banco' });
+    await waitFor(() => expect(incluir).toBeEnabled());
+    await user.click(incluir);
+    let dialog = await screen.findByRole('dialog', { name: 'Novo Banco' });
+    await user.type(within(dialog).getByLabelText(/^Número/), '077');
+    await user.type(within(dialog).getByLabelText(/^Banco/), 'Nome Errado');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+    expect(await screen.findByText(/Nome Errado/)).toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: 'Editar' }));
+    dialog = await screen.findByRole('dialog', { name: 'Editar Banco' });
+    // A janela abre preenchida, para corrigir em vez de redigitar.
+    const nome = within(dialog).getByLabelText(/^Banco/);
+    expect(nome).toHaveValue('Nome Errado');
+    await user.clear(nome);
+    await user.type(nome, 'Nome Certo');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+
+    expect(await screen.findByText(/Nome Certo/)).toBeInTheDocument();
+    expect(api.bancos()[0].nome).toBe('Nome Certo');
+  });
+
+  it('recusa excluir banco que tem agência', async () => {
+    const api = apiFalsaAtual();
+    const user = userEvent.setup();
+    window.location.hash = '#/bancos';
+    render(<App />);
+
+    const incluir = await screen.findByRole('button', { name: 'Incluir Banco' });
+    await waitFor(() => expect(incluir).toBeEnabled());
+    await user.click(incluir);
+    let dialog = await screen.findByRole('dialog', { name: 'Novo Banco' });
+    await user.type(within(dialog).getByLabelText(/^Número/), '999');
+    await user.type(within(dialog).getByLabelText(/^Banco/), 'Banco de Teste');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+    expect(await screen.findByText(/Banco de Teste/)).toBeInTheDocument();
+
+    await user.click(await screen.findByRole('button', { name: 'Incluir Agência' }));
+    dialog = await screen.findByRole('dialog', { name: /Nova Agência/ });
+    await user.type(within(dialog).getByLabelText(/^Agência/), '0001');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+    // O número aparece no nó e no elemento que o envolve.
+    expect(await screen.findAllByText(/0001/)).not.toHaveLength(0);
+
+    await user.click(screen.getAllByRole('button', { name: 'Excluir' })[0]);
+    dialog = await screen.findByRole('dialog', { name: 'Excluir Banco' });
+    await user.click(within(dialog).getByRole('button', { name: 'Sim, excluir' }));
+
+    // A API recusa e o banco continua lá.
+    expect(await screen.findByRole('status')).toHaveTextContent('agencias');
+    expect(api.bancos()).toHaveLength(1);
+  });
 });

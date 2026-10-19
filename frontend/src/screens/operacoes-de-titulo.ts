@@ -13,6 +13,7 @@ import {
   atualizarContaPagar,
   criarContaPagar,
   listarContasPagar,
+  cancelarContaPagar,
   quitarContaPagar,
   simularQuitacao,
 } from '../api/contas-pagar';
@@ -20,6 +21,7 @@ import {
   atualizarContaReceber,
   criarContaReceber,
   listarContasReceber,
+  cancelarContaReceber,
   receberContaReceber,
   simularRecebimento,
 } from '../api/contas-receber';
@@ -32,6 +34,7 @@ export const OPERACOES_A_PAGAR: OperacoesDeTitulo = {
   criar: async corpo => dePagar(await criarContaPagar(corpo)),
   atualizar: async (id, corpo) => dePagar(await atualizarContaPagar(id, corpo)),
   simular: simularQuitacao,
+  cancelar: async id => dePagar(await cancelarContaPagar(id)),
   quitar: async (id, dados) =>
     dePagar(
       await quitarContaPagar(id, {
@@ -48,6 +51,7 @@ export const OPERACOES_A_RECEBER: OperacoesDeTitulo = {
   criar: async corpo => deReceber(await criarContaReceber(corpo)),
   atualizar: async (id, corpo) => deReceber(await atualizarContaReceber(id, corpo)),
   simular: simularRecebimento,
+  cancelar: async id => deReceber(await cancelarContaReceber(id)),
   quitar: async (id, dados) =>
     deReceber(
       await receberContaReceber(id, {

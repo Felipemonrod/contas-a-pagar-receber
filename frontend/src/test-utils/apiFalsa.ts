@@ -332,6 +332,7 @@ export function instalarApiFalsa(
         return respostaOk(pessoas[posicao]);
       }
       if (metodo === 'DELETE') {
+        // Regra RN13: pessoa e inativada, nunca excluida.
         pessoas[posicao] = { ...pessoas[posicao], ativo: false };
         return respostaOk(pessoas[posicao]);
       }
@@ -430,6 +431,14 @@ export function instalarApiFalsa(
         return respostaOk(contas[posicao]);
       }
       if (metodo === 'DELETE') {
+        // Regra RN11: titulo com pagamento nao pode ser cancelado.
+        if (contas[posicao].pagamentos.length) {
+          return respostaDeErro(
+            422,
+            'REGRA_NEGOCIO',
+            'Titulo com pagamento registrado nao pode ser cancelado.',
+          );
+        }
         contas[posicao] = { ...contas[posicao], situacao: 'CANCELADA' };
         return respostaOk(contas[posicao]);
       }
@@ -506,6 +515,17 @@ export function instalarApiFalsa(
       const posicao = contasReceber.findIndex(c => c.id === id);
       if (posicao === -1) return respostaDeErro(404, 'NAO_ENCONTRADO', 'Titulo nao encontrado.');
 
+      if (metodo === 'DELETE') {
+        if (contasReceber[posicao].pagamentos.length) {
+          return respostaDeErro(
+            422,
+            'REGRA_NEGOCIO',
+            'Titulo com recebimento registrado nao pode ser cancelado.',
+          );
+        }
+        contasReceber[posicao] = { ...contasReceber[posicao], situacao: 'CANCELADA' };
+        return respostaOk(paraFormatoReceber(contasReceber[posicao]));
+      }
       if (metodo === 'PUT' && corpo) {
         if (contasReceber[posicao].pagamentos.length) {
           return respostaDeErro(
@@ -997,6 +1017,59 @@ export function instalarApiFalsa(
       // ESTORNA: devolve 200 com o recurso, e nao 204.
       lancamentos[posicao] = { ...lancamentos[posicao], status: 'ESTORNADO' };
       return respostaOk(lancamentos[posicao]);
+    }
+
+
+    // ----- exclusões e cancelamentos ---------------------------------------
+    const bancoComId = /^\/bancos\/(\d+)$/.exec(caminho);
+    if (bancoComId) {
+      const id = Number(bancoComId[1]);
+      const posicao = bancos.findIndex(b => b.id === id);
+      if (posicao === -1) return respostaDeErro(404, 'NAO_ENCONTRADO', 'Banco nao encontrado.');
+      if (metodo === 'PUT' && corpo) {
+        const alterado = corpo as unknown as { codigo: string; nome: string };
+        bancos[posicao] = { id, codigo: alterado.codigo, nome: alterado.nome };
+        return respostaOk({ ...bancos[posicao], agencias: [] });
+      }
+      if (metodo === 'DELETE') {
+        // Banco com agencia nao pode ser excluido.
+        if (agencias.some(a => a.bancoId === id)) {
+          return respostaDeErro(409, 'CONFLITO', 'O banco possui agencias.');
+        }
+        bancos.splice(posicao, 1);
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    const agenciaComId = /^\/agencias\/(\d+)$/.exec(caminho);
+    if (agenciaComId) {
+      const id = Number(agenciaComId[1]);
+      const posicao = agencias.findIndex(a => a.id === id);
+      if (posicao === -1) return respostaDeErro(404, 'NAO_ENCONTRADO', 'Agencia nao encontrada.');
+      if (metodo === 'PUT' && corpo) {
+        const alterada = corpo as unknown as { numero: string; nome?: string };
+        agencias[posicao] = {
+          ...agencias[posicao],
+          numero: alterada.numero,
+          nome: alterada.nome ?? null,
+        };
+        return respostaOk({ ...agencias[posicao], contas: [] });
+      }
+      if (metodo === 'DELETE') {
+        // Agencia com conta corrente nao pode ser excluida.
+        if (contasCorrentes.some(c => c.agenciaId === id)) {
+          return respostaDeErro(409, 'CONFLITO', 'A agencia possui contas correntes.');
+        }
+        agencias.splice(posicao, 1);
+        return new Response(null, { status: 204 });
+      }
+    }
+
+    if (caminho === '/cheques/a-depositar' && metodo === 'GET') {
+      const hoje = new Date().toLocaleDateString('sv-SE');
+      return respostaOk(
+        cheques.filter(c => c.situacao === 'EM_CARTEIRA' && c.deposito < hoje),
+      );
     }
 
 

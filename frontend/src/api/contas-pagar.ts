@@ -65,3 +65,12 @@ export function quitarContaPagar(id: number, quitacao: QuitacaoNova): Promise<Co
 export function simularQuitacao(id: number, data: string): Promise<SimulacaoApi> {
   return requisitar<SimulacaoApi>(`/contas-pagar/${id}/simulacao?data=${data}`);
 }
+
+/**
+ * CANCELA o título; não exclui.
+ * Responde 200 com o recurso em situação CANCELADA, e 422 se já houver
+ * pagamento registrado (regra RN11).
+ */
+export function cancelarContaPagar(id: number): Promise<ContaPagarApi> {
+  return requisitar<ContaPagarApi>(`/contas-pagar/${id}`, { metodo: 'DELETE' });
+}

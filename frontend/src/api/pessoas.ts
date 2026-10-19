@@ -36,3 +36,12 @@ export function criarPessoa(pessoa: PessoaNova): Promise<PessoaApi> {
 export function atualizarPessoa(id: number, pessoa: PessoaNova): Promise<PessoaApi> {
   return requisitar<PessoaApi>(`/pessoas/${id}`, { metodo: 'PUT', corpo: pessoa });
 }
+
+/**
+ * INATIVA a pessoa; não exclui (regra RN13).
+ * O histórico de títulos depende dela continuar existindo, então a API
+ * responde 200 com o recurso já inativado, e não 204.
+ */
+export function inativarPessoa(id: number): Promise<PessoaApi> {
+  return requisitar<PessoaApi>(`/pessoas/${id}`, { metodo: 'DELETE' });
+}

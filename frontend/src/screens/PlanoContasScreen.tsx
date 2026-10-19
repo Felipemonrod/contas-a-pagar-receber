@@ -16,7 +16,12 @@ import { Button, Modal } from '../components';
 import { RecordForm, type ListasDeEscolha } from '../RecordForm';
 import { screens, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
-import { criarPlanoConta, atualizarPlanoConta, listarArvore } from '../api/plano-contas';
+import {
+  atualizarPlanoConta,
+  criarPlanoConta,
+  excluirPlanoConta,
+  listarArvore,
+} from '../api/plano-contas';
 import { mensagemDoErro } from '../api/http';
 import {
   achatarArvore,
@@ -26,7 +31,11 @@ import {
 import type { PlanoContaApi } from '../api/tipos';
 import { Carregando, Erro, Vazio } from '../ui/estados';
 
-type Janela = { tipo: 'incluir' } | { tipo: 'editar'; conta: PlanoContaApi } | null;
+type Janela =
+  | { tipo: 'incluir' }
+  | { tipo: 'editar'; conta: PlanoContaApi }
+  | { tipo: 'excluir'; conta: PlanoContaApi }
+  | null;
 
 /** Quantos pixels cada nível da árvore recua. */
 const RECUO_POR_NIVEL = 22;
@@ -77,6 +86,26 @@ export function PlanoContasScreen({
       else setJanela(null);
     } catch (problema: unknown) {
       setErroDoFormulario(mensagemDoErro(problema));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  /**
+   * Exclui a categoria. A API recusa quando ela tem subcontas, e explica o
+   * motivo — mostramos a mensagem como veio.
+   */
+  async function excluir(conta: PlanoContaApi) {
+    setSalvando(true);
+    try {
+      await excluirPlanoConta(conta.id);
+      setJanela(null);
+      setSelecionada(undefined);
+      onAviso(`Categoria ${conta.codigo} excluída.`);
+      recurso.recarregar();
+    } catch (problema: unknown) {
+      setJanela(null);
+      onAviso(mensagemDoErro(problema));
     } finally {
       setSalvando(false);
     }
@@ -172,12 +201,25 @@ export function PlanoContasScreen({
           >
             Inclusão
           </Button>
+          <Button
+            disabled={recurso.carregando}
+            onClick={() => {
+              const conta = todas.find(({ conta: c }) => c.id === selecionada)?.conta;
+              if (!conta) {
+                onAviso('Selecione uma categoria primeiro.');
+                return;
+              }
+              setJanela({ tipo: 'excluir', conta });
+            }}
+          >
+            Exclusão
+          </Button>
         </div>
       </div>
 
       {conteudo()}
 
-      {janela && (
+      {(janela?.tipo === 'incluir' || janela?.tipo === 'editar') && (
         <Modal title={config.modal} onClose={() => setJanela(null)}>
           <RecordForm
             entity="plano"
@@ -188,6 +230,26 @@ export function PlanoContasScreen({
             mensagemErro={erroDoFormulario}
             salvando={salvando}
           />
+        </Modal>
+      )}
+
+      {janela?.tipo === 'excluir' && (
+        <Modal title="Confirmar Exclusão" compact onClose={() => setJanela(null)}>
+          <div className="form-body">
+            {/* A API recusa excluir categoria que tenha subcontas. */}
+            <p>Confirma a exclusão desta categoria? Só é possível se ela não tiver subcontas.</p>
+            <strong>
+              {janela.conta.codigo} — {janela.conta.descricao}
+            </strong>
+          </div>
+          <footer className="modal-footer">
+            <Button onClick={() => setJanela(null)} disabled={salvando}>
+              Não
+            </Button>
+            <Button primary onClick={() => void excluir(janela.conta)} disabled={salvando}>
+              Sim, excluir
+            </Button>
+          </footer>
         </Modal>
       )}
     </>

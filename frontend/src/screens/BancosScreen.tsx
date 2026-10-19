@@ -17,10 +17,14 @@ import { Button, Modal } from '../components';
 import { screens, displayValue } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
 import {
+  atualizarAgencia,
+  atualizarBanco,
   criarAgencia,
   criarBanco,
   criarContaCorrente,
   desativarContaCorrente,
+  excluirAgencia,
+  excluirBanco,
   listarBancos,
 } from '../api/bancos';
 import { mensagemDoErro } from '../api/http';
@@ -29,10 +33,12 @@ import { Carregando, Erro, Vazio } from '../ui/estados';
 
 /** Qual janela esta aberta, e a que no da arvore ela pertence. */
 type Janela =
-  | { tipo: 'banco' }
-  | { tipo: 'agencia'; banco: BancoApi }
+  | { tipo: 'banco'; editando?: BancoApi }
+  | { tipo: 'agencia'; banco: BancoApi; editando?: AgenciaApi }
   | { tipo: 'conta'; agencia: AgenciaApi }
   | { tipo: 'desativar'; conta: ContaCorrenteApi }
+  | { tipo: 'excluirBanco'; banco: BancoApi }
+  | { tipo: 'excluirAgencia'; agencia: AgenciaApi }
   | null;
 
 /** Quantos pixels cada nivel recua. */
@@ -50,9 +56,12 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
   const recurso = useRecurso(() => listarBancos(), 'bancos');
   const bancos = recurso.dados ?? [];
 
-  /** Abre uma janela limpa, sem o que foi digitado na anterior. */
-  function abrir(nova: NonNullable<Janela>) {
-    setCampos({});
+  /**
+   * Abre uma janela. Em inclusão vem vazia; em edição vem com o que já
+   * está gravado, para o usuário corrigir em vez de redigitar.
+   */
+  function abrir(nova: NonNullable<Janela>, iniciais: Record<string, string> = {}) {
+    setCampos(iniciais);
     setErro('');
     setJanela(nova);
   }
@@ -63,8 +72,7 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
   };
 
   const campo = (nome: string) => (campos[nome] ?? '').trim();
-
-  /** Grava o nivel correspondente a janela aberta. */
+  /** Grava o nível correspondente à janela aberta, incluindo ou alterando. */
   async function gravar() {
     if (!janela) return;
 
@@ -72,17 +80,23 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
     setErro('');
     try {
       if (janela.tipo === 'banco') {
-        const criado = await criarBanco({ codigo: campo('codigo'), nome: campo('nome') });
-        onAviso(`Banco ${criado.codigo} cadastrado.`);
+        const corpo = { codigo: campo('codigo'), nome: campo('nome') };
+        const salvo = janela.editando
+          ? await atualizarBanco(janela.editando.id, corpo)
+          : await criarBanco(corpo);
+        onAviso(`Banco ${salvo.codigo} ${janela.editando ? 'atualizado' : 'cadastrado'}.`);
       } else if (janela.tipo === 'agencia') {
-        const criada = await criarAgencia({
+        const corpo = {
           bancoId: janela.banco.id,
           numero: campo('numero'),
           nome: campo('nome') || undefined,
           gerente: campo('gerente') || undefined,
           telefone: campo('telefone') || undefined,
-        });
-        onAviso(`Agência ${criada.numero} cadastrada.`);
+        };
+        const salva = janela.editando
+          ? await atualizarAgencia(janela.editando.id, corpo)
+          : await criarAgencia(corpo);
+        onAviso(`Agência ${salva.numero} ${janela.editando ? 'atualizada' : 'cadastrada'}.`);
       } else if (janela.tipo === 'conta') {
         const criada = await criarContaCorrente({
           agenciaId: janela.agencia.id,
@@ -95,6 +109,32 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
       recurso.recarregar();
     } catch (problema: unknown) {
       setErro(mensagemDoErro(problema));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  /**
+   * Exclui um banco ou uma agência.
+   *
+   * A API recusa quando o nó tem filhos — banco com agência, agência com
+   * conta — e explica o motivo, que mostramos como veio.
+   */
+  async function excluirNo(janela: { tipo: 'excluirBanco'; banco: BancoApi } | { tipo: 'excluirAgencia'; agencia: AgenciaApi }) {
+    setSalvando(true);
+    try {
+      if (janela.tipo === 'excluirBanco') {
+        await excluirBanco(janela.banco.id);
+        onAviso(`Banco ${janela.banco.codigo} excluído.`);
+      } else {
+        await excluirAgencia(janela.agencia.id);
+        onAviso(`Agência ${janela.agencia.numero} excluída.`);
+      }
+      setJanela(null);
+      recurso.recarregar();
+    } catch (problema: unknown) {
+      setJanela(null);
+      onAviso(mensagemDoErro(problema));
     } finally {
       setSalvando(false);
     }
@@ -162,6 +202,25 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
         <Button className="acao-no-no" onClick={() => abrir({ tipo: 'conta', agencia })}>
           Incluir Conta
         </Button>
+        <Button
+          className="acao-no-no"
+          onClick={() =>
+            abrir(
+              { tipo: 'agencia', banco: { id: agencia.bancoId } as BancoApi, editando: agencia },
+              {
+                numero: agencia.numero,
+                nome: agencia.nome ?? '',
+                gerente: agencia.gerente ?? '',
+                telefone: agencia.telefone ?? '',
+              },
+            )
+          }
+        >
+          Editar
+        </Button>
+        <Button className="acao-no-no" onClick={() => abrir({ tipo: 'excluirAgencia', agencia })}>
+          Excluir
+        </Button>
 
         {aberta && (
           <ul>
@@ -194,6 +253,17 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
         </button>
         <Button className="acao-no-no" onClick={() => abrir({ tipo: 'agencia', banco })}>
           Incluir Agência
+        </Button>
+        <Button
+          className="acao-no-no"
+          onClick={() =>
+            abrir({ tipo: 'banco', editando: banco }, { codigo: banco.codigo, nome: banco.nome })
+          }
+        >
+          Editar
+        </Button>
+        <Button className="acao-no-no" onClick={() => abrir({ tipo: 'excluirBanco', banco })}>
+          Excluir
         </Button>
 
         {aberto && (
@@ -249,8 +319,12 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
 
   /** Título da janela, dizendo a que nó o novo registro vai pertencer. */
   function tituloDaJanela(atual: NonNullable<Janela>) {
-    if (atual.tipo === 'banco') return 'Novo Banco';
-    if (atual.tipo === 'agencia') return `Nova Agência — ${atual.banco.nome}`;
+    if (atual.tipo === 'banco') return atual.editando ? 'Editar Banco' : 'Novo Banco';
+    if (atual.tipo === 'agencia') {
+      return atual.editando
+        ? `Editar Agência ${atual.editando.numero}`
+        : `Nova Agência — ${atual.banco.nome}`;
+    }
     if (atual.tipo === 'conta') return `Nova Conta — agência ${atual.agencia.numero}`;
     return 'Desativar Conta Corrente';
   }
@@ -267,7 +341,7 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
 
       {conteudo()}
 
-      {janela && janela.tipo !== 'desativar' && (
+      {(janela?.tipo === 'banco' || janela?.tipo === 'agencia' || janela?.tipo === 'conta') && (
         <Modal title={tituloDaJanela(janela)} compact onClose={() => setJanela(null)}>
           <form
             onSubmit={evento => {
@@ -318,6 +392,35 @@ export function BancosScreen({ onAviso }: { onAviso: (mensagem: string) => void 
         </Modal>
       )}
 
+      {(janela?.tipo === 'excluirBanco' || janela?.tipo === 'excluirAgencia') && (
+        <Modal
+          title={janela.tipo === 'excluirBanco' ? 'Excluir Banco' : 'Excluir Agência'}
+          compact
+          onClose={() => setJanela(null)}
+        >
+          <div className="form-body">
+            {/* A API recusa excluir nó com filhos e explica o motivo. */}
+            <p>
+              {janela.tipo === 'excluirBanco'
+                ? 'Confirma a exclusão deste banco? Só é possível se ele não tiver agências.'
+                : 'Confirma a exclusão desta agência? Só é possível se ela não tiver contas.'}
+            </p>
+            <strong>
+              {janela.tipo === 'excluirBanco'
+                ? `${janela.banco.codigo} — ${janela.banco.nome}`
+                : `${janela.agencia.numero} — ${janela.agencia.nome ?? 'Agência'}`}
+            </strong>
+          </div>
+          <footer className="modal-footer">
+            <Button onClick={() => setJanela(null)} disabled={salvando}>
+              Não
+            </Button>
+            <Button primary onClick={() => void excluirNo(janela)} disabled={salvando}>
+              Sim, excluir
+            </Button>
+          </footer>
+        </Modal>
+      )}
       {janela?.tipo === 'desativar' && (
         <Modal title="Desativar Conta Corrente" compact onClose={() => setJanela(null)}>
           <div className="form-body">

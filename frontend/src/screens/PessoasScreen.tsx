@@ -16,7 +16,12 @@ import { Button, DataTable, Modal } from '../components';
 import { RecordForm } from '../RecordForm';
 import { screens, type Entity, type RecordData } from '../data';
 import { useRecurso } from '../hooks/useRecurso';
-import { atualizarPessoa, criarPessoa, listarPessoas } from '../api/pessoas';
+import {
+  atualizarPessoa,
+  criarPessoa,
+  inativarPessoa,
+  listarPessoas,
+} from '../api/pessoas';
 import { mensagemDoErro } from '../api/http';
 import { pessoaParaRegistro, registroParaPessoa } from '../adapters/pessoas';
 import type { Papel, PessoaApi } from '../api/tipos';
@@ -27,6 +32,7 @@ type Janela =
   | { tipo: 'incluir' }
   | { tipo: 'editar'; registro: RecordData; pessoa: PessoaApi }
   | { tipo: 'localizar' }
+  | { tipo: 'inativar'; pessoa: PessoaApi }
   | null;
 
 export function PessoasScreen({
@@ -82,6 +88,15 @@ export function PessoasScreen({
   /** Traduz o clique de um botao da barra de acoes numa acao da tela. */
   function acionar(rotulo: string) {
     if (rotulo === 'Editar') return abrirEdicao();
+    if (rotulo === 'Inativar') {
+      const pessoa = pessoas.find(item => String(item.id) === selecionado);
+      if (!pessoa) {
+        onAviso('Selecione um registro primeiro.');
+        return;
+      }
+      setJanela({ tipo: 'inativar', pessoa });
+      return;
+    }
     if (rotulo === 'Localizar') {
       setBuscaDigitada(busca);
       return setJanela({ tipo: 'localizar' });
@@ -118,6 +133,27 @@ export function PessoasScreen({
       recurso.recarregar();
     } catch (problema: unknown) {
       setErroDoFormulario(mensagemDoErro(problema));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  /**
+   * Inativa a pessoa. A API não exclui (regra RN13): o histórico de títulos
+   * depende dela continuar existindo, então ela some das listas mas o
+   * registro permanece no banco.
+   */
+  async function inativar(pessoa: PessoaApi) {
+    setSalvando(true);
+    try {
+      await inativarPessoa(pessoa.id);
+      setJanela(null);
+      setSelecionado(undefined);
+      onAviso(`${pessoa.nome} foi inativado.`);
+      recurso.recarregar();
+    } catch (problema: unknown) {
+      setJanela(null);
+      onAviso(mensagemDoErro(problema));
     } finally {
       setSalvando(false);
     }
@@ -181,6 +217,27 @@ export function PessoasScreen({
       )}
 
       {conteudo()}
+
+      {janela?.tipo === 'inativar' && (
+        <Modal title="Inativar Registro" compact onClose={() => setJanela(null)}>
+          <div className="form-body">
+            {/* A API nao exclui pessoa: o historico de titulos depende dela. */}
+            <p>
+              Confirma a inativação deste registro? Ele não é excluído, porque os títulos já
+              lançados dependem dele.
+            </p>
+            <strong>{janela.pessoa.nome}</strong>
+          </div>
+          <footer className="modal-footer">
+            <Button onClick={() => setJanela(null)} disabled={salvando}>
+              Não
+            </Button>
+            <Button primary onClick={() => void inativar(janela.pessoa)} disabled={salvando}>
+              Sim, inativar
+            </Button>
+          </footer>
+        </Modal>
+      )}
 
       {janela?.tipo === 'localizar' && (
         <Modal title="Localizar" compact onClose={() => setJanela(null)}>

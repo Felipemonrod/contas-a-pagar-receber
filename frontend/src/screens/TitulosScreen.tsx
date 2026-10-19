@@ -40,6 +40,8 @@ export type OperacoesDeTitulo = {
     id: number,
     dados: { data: string; forma: FormaPagamento; valor?: number },
   ) => Promise<Titulo>;
+  /** CANCELA o título; não exclui. Recusado se já houver quitação (RN11). */
+  cancelar: (id: number) => Promise<Titulo>;
 };
 
 type Janela =
@@ -47,6 +49,7 @@ type Janela =
   | { tipo: 'editar'; registro: RecordData; titulo: Titulo }
   | { tipo: 'quitar'; titulo: Titulo }
   | { tipo: 'localizar' }
+  | { tipo: 'cancelar'; titulo: Titulo }
   | null;
 
 export function TitulosScreen({
@@ -114,6 +117,19 @@ export function TitulosScreen({
       setJanela({ tipo: 'quitar', titulo });
       return;
     }
+    if (rotulo === 'Cancelar') {
+      const titulo = titulos.find(item => String(item.id) === selecionado);
+      if (!titulo) {
+        onAviso('Selecione um título primeiro.');
+        return;
+      }
+      if (titulo.situacao === 'CANCELADA') {
+        onAviso('Este título já está cancelado.');
+        return;
+      }
+      setJanela({ tipo: 'cancelar', titulo });
+      return;
+    }
     if (rotulo === 'Localizar') {
       setBuscaDigitada(busca);
       setJanela({ tipo: 'localizar' });
@@ -157,6 +173,26 @@ export function TitulosScreen({
       recurso.recarregar();
     } catch (problema: unknown) {
       setErroDoFormulario(mensagemDoErro(problema));
+    } finally {
+      setSalvando(false);
+    }
+  }
+
+  /**
+   * Cancela o título. A API não exclui: muda a situação para CANCELADA e
+   * mantém o registro, porque o histórico depende dele existir. Recusa com
+   * 422 se já houver quitação (regra RN11).
+   */
+  async function cancelar(titulo: Titulo) {
+    setSalvando(true);
+    try {
+      const cancelado = await operacoes.cancelar(titulo.id);
+      setJanela(null);
+      onAviso(`Título ${cancelado.numeroTitulo} cancelado.`);
+      recurso.recarregar();
+    } catch (problema: unknown) {
+      setJanela(null);
+      onAviso(mensagemDoErro(problema));
     } finally {
       setSalvando(false);
     }
@@ -266,6 +302,29 @@ export function TitulosScreen({
               </Button>
             </footer>
           </form>
+        </Modal>
+      )}
+
+      {janela?.tipo === 'cancelar' && (
+        <Modal title="Cancelar Título" compact onClose={() => setJanela(null)}>
+          <div className="form-body">
+            {/* Cancelar nao apaga: o titulo continua na lista, marcado. */}
+            <p>
+              Confirma o cancelamento deste título? Ele continuará na lista, com a situação
+              CANCELADA.
+            </p>
+            <strong>
+              {janela.titulo.numeroTitulo} — {janela.titulo.pessoaNome}
+            </strong>
+          </div>
+          <footer className="modal-footer">
+            <Button onClick={() => setJanela(null)} disabled={salvando}>
+              Não
+            </Button>
+            <Button primary onClick={() => void cancelar(janela.titulo)} disabled={salvando}>
+              Sim, cancelar
+            </Button>
+          </footer>
         </Modal>
       )}
 
