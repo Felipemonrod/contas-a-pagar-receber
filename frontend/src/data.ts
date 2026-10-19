@@ -169,7 +169,7 @@ export const screens: Record<Entity, ScreenConfig> = {
     description: 'Manutenção da estrutura hierárquica das contas.',
     modal: 'Plano de Contas',
     primary: 'Descrição da Conta',
-    actions: ['Inclusão'],
+    actions: ['Inclusão', 'Exclusão'],
     columns: [col('Nova Conta', 160, 'Conta'), col('Descrição da Conta', 500, 'Descrição')],
   },
 

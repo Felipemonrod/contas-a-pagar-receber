@@ -187,33 +187,41 @@ export function PlanoContasScreen({
   const registroEmEdicao: RecordData | undefined =
     janela?.tipo === 'editar' ? planoContaParaRegistro(janela.conta) : undefined;
 
+  /** Despacha o clique da barra para a operação correspondente. */
+  function acionar(rotulo: string) {
+    if (rotulo === 'Inclusão') {
+      setErroDoFormulario('');
+      setJanela({ tipo: 'incluir' });
+      return;
+    }
+
+    // Só a folha da árvore é selecionável, então aqui a conta nunca tem
+    // subcontas — a exclusão que o servidor recusaria não chega a ser pedida.
+    const conta = todas.find(({ conta: c }) => c.id === selecionada)?.conta;
+    if (!conta) {
+      onAviso('Selecione uma categoria primeiro.');
+      return;
+    }
+    setJanela({ tipo: 'excluir', conta });
+  }
+
+
   return (
     <>
       <div className="toolbar inset-panel" aria-label={`Ações de ${config.heading}`}>
         <div className="toolbar-buttons">
-          <Button
-            primary
-            disabled={recurso.carregando}
-            onClick={() => {
-              setErroDoFormulario('');
-              setJanela({ tipo: 'incluir' });
-            }}
-          >
-            Inclusão
-          </Button>
-          <Button
-            disabled={recurso.carregando}
-            onClick={() => {
-              const conta = todas.find(({ conta: c }) => c.id === selecionada)?.conta;
-              if (!conta) {
-                onAviso('Selecione uma categoria primeiro.');
-                return;
-              }
-              setJanela({ tipo: 'excluir', conta });
-            }}
-          >
-            Exclusão
-          </Button>
+          {/* A barra vem de `data.ts`, como nas outras telas, para a
+              configuração e o que aparece não saírem de sincronia. */}
+          {config.actions.map((rotulo, indice) => (
+            <Button
+              key={rotulo}
+              primary={indice === 0}
+              disabled={recurso.carregando}
+              onClick={() => acionar(rotulo)}
+            >
+              {rotulo}
+            </Button>
+          ))}
         </div>
       </div>
 
