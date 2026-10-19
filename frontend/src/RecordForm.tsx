@@ -132,9 +132,12 @@ export function RecordForm({
     if (rotulo === 'Nome do Cliente' || (rotulo === 'Cliente' && entity === 'cheques')) {
       return database.clientes.map(c => c.Cliente);
     }
+    // As duas contas do lancamento vem de /plano-contas/analiticas. Antes
+    // havia dois nomes fixos aqui, 'Fornecedores' e 'Duplicatas a Pagar',
+    // herdados da versao em localStorage: hoje nao casam com conta nenhuma
+    // e so dariam erro ao gravar.
     if (rotulo.startsWith('Conta de ')) {
-      const contas = database.plano.map(c => c['Descrição da Conta']);
-      return [...new Set([...contas, 'Fornecedores', 'Duplicatas a Pagar'])];
+      return database.plano.map(c => c['Descrição da Conta']);
     }
     // As contas superiores possiveis sao as que ja existem no plano. A tela
     // do plano de contas preenche esta lista com o que veio da API.

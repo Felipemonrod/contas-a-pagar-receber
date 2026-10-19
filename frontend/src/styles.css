@@ -204,3 +204,7 @@ tbody .empty-state { height: 80px; padding: 20px; text-align: center; color: #60
 .situacao-atual { margin: 2px 0 4px; display: flex; align-items: center; gap: 10px; }
 .marca-vencido { padding: 1px 8px; font-size: 11px; color: #850d16; background: #f6e3e5; border: 1px solid #c58b92; }
 .aviso-vencidos { margin-top: 18px; padding: 10px 16px; color: #850d16; background: #f6e3e5; border: 1px solid #c58b92; }
+
+/* Árvore de bancos: ação ao lado do nó e nó sem filhos. */
+.acao-no-no { margin-left: 10px; transform: scale(0.85); transform-origin: left center; }
+.no-vazio { padding: 4px 0; color: #606a73; font-style: italic; }

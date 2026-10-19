@@ -144,18 +144,12 @@ export const screens: Record<Entity, ScreenConfig> = {
 
   bancos: {
     title: 'Cadastro de Bancos',
-    heading: 'Bancos',
-    description: 'Cadastro de bancos, agências e contas correntes.',
-    modal: 'Banco / Agência / Conta Corrente',
+    heading: 'Bancos, Agências e Contas Correntes',
+    description: 'Cadeia de três níveis: um banco tem agências, uma agência tem contas.',
+    modal: 'Banco',
     primary: 'Banco',
-    actions: ['Incluir Agência', 'Editar Agência', 'Excluir Agência', 'Incluir Conta'],
-    columns: [
-      col('Banco', 220),
-      col('Agência', 160),
-      col('Nome da Agência', 230, 'Nome'),
-      col('Conta Corrente', 200, 'Conta'),
-      col('Limite', 180, 'Limite', 'money'),
-    ],
+    actions: ['Incluir Banco'],
+    columns: [col('Número', 120), col('Banco', 500)],
   },
 
   cartorios: {
@@ -184,17 +178,19 @@ export const screens: Record<Entity, ScreenConfig> = {
 
   lancamentos: {
     title: 'Lançamento',
-    heading: 'Lançamento',
-    description: 'Lançamento contábil entre contas.',
+    heading: 'Lançamento Contábil',
+    description: 'Partida dobrada: o valor sai de uma conta e entra em outra.',
     modal: 'Lançamento',
     primary: 'Descrição',
-    actions: ['Incluir', 'Editar', 'Excluir'],
+    actions: ['Incluir', 'Estornar'],
     columns: [
-      col('Registro', 90),
-      col('Data', 160, 'Data', 'date'),
-      col('Conta de Crédito', 280, 'Crédito'),
-      col('Conta de Débito', 280, 'Débito'),
-      col('Valor', 180, 'Valor', 'money'),
+      col('Registro', 80),
+      col('Data', 120, 'Data', 'date'),
+      col('Conta de Crédito', 230, 'Crédito'),
+      col('Conta de Débito', 230, 'Débito'),
+      col('Valor', 140, 'Valor', 'money'),
+      col('Descrição', 240),
+      col('Situação', 110),
     ],
   },
 

@@ -46,6 +46,11 @@ carregando, vazio e erro. Para usá-las, suba o back-end antes (veja abaixo).
 | Plano de Contas | `/api/plano-contas` | árvore de categorias, cadastro e edição |
 | Despesas | `/api/despesas` | previsões de gasto e geração de título |
 | Relatórios | `/api/relatorios` | posição do período, por categoria e inadimplência |
+| Bancos | `/api/bancos` | cadeia banco > agência > conta corrente, em árvore |
+| Cartórios | `/api/cartorios` | cadastro usado pela remessa a protesto |
+| Lançamentos | `/api/lancamentos` | partida dobrada, com estorno |
+| Cheque Pré-Datado | `/api/cheques` | cadastro e ciclo do cheque |
+| Remessa p/ Cartório | `/api/remessas-cartorio` | envio a protesto, protesto e baixa |
 
 Duas telas servem dois cadastros cada, porque na API são a mesma coisa:
 
@@ -60,12 +65,12 @@ de `/simulacao`, com desconto ou juros já aplicados na data escolhida.
 Em Despesas, "Gerar Título" converte a previsão de gasto num título a pagar,
 com o valor real da fatura.
 
-Cinco telas seguem no `localStorage` do navegador, na chave
-`contas-financeiro-v1`, com exemplos do Figma: Bancos, Cartórios,
-Lançamentos, Cheque Pré-Datado e Remessa. Não é pendência, é escopo: a API
-não tem endpoint para esses assuntos (seção 9 do contrato). Não há
-autenticação, conciliação nem integração bancária; nenhuma ação executa
-pagamento de verdade.
+**As doze telas de cadastro consomem a API.** Nenhuma depende mais do
+`localStorage`: as cinco que faltavam foram integradas quando o back-end
+implementou os capítulos 9, 10, 12, 16 e 17 do livro.
+
+Não há autenticação, conciliação nem integração bancária; nenhuma ação
+executa pagamento de verdade.
 
 ### Subir a API
 
@@ -114,6 +119,11 @@ Os detalhes e as decisões estão em `docs/RELATORIO-IA.md`.
 - `src/screens/PlanoContasScreen.tsx`: árvore de categorias, por recursão.
 - `src/screens/DespesasScreen.tsx` e `JanelaGerarTitulo.tsx`: despesas previstas.
 - `src/screens/Reports.tsx`: relatórios consolidados da API.
+- `src/screens/BancosScreen.tsx`: cadeia banco > agência > conta, em árvore.
+- `src/screens/CartoriosScreen.tsx`: cadastro de cartórios.
+- `src/screens/LancamentosScreen.tsx`: partida dobrada, com estorno.
+- `src/screens/ChequesScreen.tsx` e `JanelaDeSituacao.tsx`: ciclo do cheque.
+- `src/screens/RemessasScreen.tsx`: envio a protesto, protesto e baixa.
 - `src/test-utils/apiFalsa.ts`: API em memória usada pelos testes.
 - `docs/RELATORIO-IA.md`: prompts, decisões e desafios da integração.
 - `src/styles.css`: tema, efeitos de clique e layout adaptável.

@@ -185,7 +185,11 @@ describe('fluxos do sistema financeiro', () => {
     expect(api.contas().at(-1)).toMatchObject({ numeroTitulo: 'ENEL-001', valor: 187.45 });
   });
 
-  it.each(Object.keys(layouts) as Entity[])('monta o formulário de %s', async entity => {
+  // Bancos fica de fora: a tela monta o proprio formulario, com um nivel
+  // por janela, em vez de usar o RecordForm e o form-layouts.
+  const comRecordForm = (Object.keys(layouts) as Entity[]).filter(e => e !== 'bancos');
+
+  it.each(comRecordForm)('monta o formulário de %s', async entity => {
     window.location.hash = `#/${entity}`; const user = userEvent.setup(); render(<App />);
     // Nas telas integradas a barra de acoes fica desabilitada enquanto carrega.
     const acao = screen.getByRole('button', { name: screens[entity].actions[0] });
@@ -552,18 +556,67 @@ it('Localizar filtra os títulos sem sair da tela', async () => {
     expect(screen.getByText(/Energia Eletrica/)).toBeInTheDocument();
   });
 
-  it('cadastra um banco e o disponibiliza no formulário de agência', async () => {
-    window.location.hash = '#/bancos';
+  it('monta a cadeia banco > agência > conta corrente', async () => {
+    const api = apiFalsaAtual();
     const user = userEvent.setup();
+    window.location.hash = '#/bancos';
     render(<App />);
-    await user.click(screen.getByRole('button', { name: 'Incluir Banco' }));
-    const dialog = screen.getByRole('dialog');
-    await user.type(within(dialog).getByLabelText(/^Número/), '999');
-    await user.type(within(dialog).getByLabelText(/^Banco/), 'Banco de Teste');
+
+    const incluir = await screen.findByRole('button', { name: 'Incluir Banco' });
+    await waitFor(() => expect(incluir).toBeEnabled());
+
+    // Nível 1: o banco.
+    await user.click(incluir);
+    let dialog = await screen.findByRole('dialog', { name: 'Novo Banco' });
+    await user.type(within(dialog).getByLabelText(/^Número/), '341');
+    await user.type(within(dialog).getByLabelText(/^Banco/), 'Banco Itau S/A');
     await user.click(within(dialog).getByRole('button', { name: 'OK' }));
-    expect(screen.getByText('Banco de Teste')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Incluir Agência' }));
-    const janela = within(screen.getByRole('dialog'));
-    expect(janela.getByRole('option', { name: '999 - Banco de Teste' })).toBeInTheDocument();
+
+    expect(await screen.findByText(/341.*Banco Itau/)).toBeInTheDocument();
+    // Enquanto não houver agência, a árvore diz isso em vez de ficar vazia.
+    expect(screen.getByText('Nenhuma agência neste banco.')).toBeInTheDocument();
+
+    // Nível 2: a agência, pendurada no banco em que se clicou.
+    await user.click(await screen.findByRole('button', { name: 'Incluir Agência' }));
+    dialog = await screen.findByRole('dialog', { name: /Nova Agência/ });
+    await user.type(within(dialog).getByLabelText(/^Agência/), '1234');
+    await user.type(within(dialog).getByLabelText('Nome da Agência'), 'Jabaquara');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+
+    expect(await screen.findByText(/1234.*Jabaquara/)).toBeInTheDocument();
+
+    // Nível 3: a conta corrente.
+    await user.click(await screen.findByRole('button', { name: 'Incluir Conta' }));
+    dialog = await screen.findByRole('dialog', { name: /Nova Conta/ });
+    await user.type(within(dialog).getByLabelText(/^Conta Corrente/), '56789-0');
+    await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+
+    // A API devolve a identificação pronta, juntando os três níveis.
+    expect(await screen.findByText(/341 \/ 1234 \/ 56789-0/)).toBeInTheDocument();
+    expect(api.bancos()).toHaveLength(1);
+  });
+
+  it('recusa dois bancos com o mesmo código, com a mensagem da API', async () => {
+    const user = userEvent.setup();
+    window.location.hash = '#/bancos';
+    render(<App />);
+
+    const incluir = await screen.findByRole('button', { name: 'Incluir Banco' });
+    await waitFor(() => expect(incluir).toBeEnabled());
+
+    for (const nome of ['Banco Um', 'Banco Dois']) {
+      await user.click(screen.getByRole('button', { name: 'Incluir Banco' }));
+      const dialog = await screen.findByRole('dialog', { name: 'Novo Banco' });
+      await user.type(within(dialog).getByLabelText(/^Número/), '001');
+      await user.type(within(dialog).getByLabelText(/^Banco/), nome);
+      await user.click(within(dialog).getByRole('button', { name: 'OK' }));
+      if (nome === 'Banco Um') {
+        await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+      }
+    }
+
+    // A janela fica aberta com a mensagem, para o usuário corrigir.
+    expect(await screen.findByRole('alert')).toHaveTextContent('codigo');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
   });
 });

@@ -560,3 +560,82 @@ pela API chegam travados ao formulário.
 
 Para conferir que o teste do rateio pega mesmo a regressão, reintroduzi o
 defeito de propósito e o teste falhou; depois restaurei a correção.
+
+---
+
+## 14. Quarta etapa: as cinco telas que faltavam
+
+O back-end implementou os capítulos 9, 10, 12, 16 e 17 do livro, e com isso
+as cinco telas que estavam em `localStorage` por falta de endpoint puderam
+ser integradas. **Nenhuma tela de cadastro depende mais do navegador.**
+
+Na mesma leva, o back-end corrigiu os cinco pontos que o front-end tinha
+relatado (seção 13) e acrescentou a `Pessoa` os quatro dados comerciais do
+fornecedor. Os contornos saíram: a edição de título com rateio voltou a
+funcionar, os campos travados foram reabertos e o filtro de papel deixou de
+ser conferido duas vezes.
+
+### 14.1 Cheque Pré-Datado: três campos viraram um
+
+A tela do livro tem Banco, Agência e Conta Corrente separados. Na API isso é
+**uma** conta corrente, identificada por id, e a resposta já traz o texto
+pronto (`"341 / 1234 / 56789-0"`). Os três campos viraram um, alimentado por
+`/contas-correntes/ativas`.
+
+O cheque tem ciclo, não só cadastro: `EM_CARTEIRA` → `DEPOSITADO` →
+`COMPENSADO` ou `DEVOLVIDO`. Como mover é um endpoint próprio, virou uma
+ação própria. A janela oferece **apenas os destinos válidos** a partir de
+onde o cheque está — cheque compensado nem mostra o botão de confirmar, em
+vez de deixar o usuário tentar e receber 422.
+
+O campo `vencido` que a API devolve virou um aviso no topo da lista, para o
+cheque com depósito atrasado não passar despercebido.
+
+### 14.2 Remessa: a tela não deixa montar o que a API recusaria
+
+A regra RN09 só permite protestar título **vencido e não quitado**. Em vez
+de aceitar qualquer título e deixar a API recusar, o formulário oferece
+apenas os elegíveis, de `/contas-receber/inadimplentes`, e a tela diz de
+antemão quantos existem.
+
+Validado nos dois caminhos: enviar um título já protocolado em outro
+cartório mostra a mensagem da API no formulário; o ciclo completo
+`ENVIADA → PROTESTADA → BAIXADA` foi percorrido contra o banco real.
+
+### 14.3 Bancos: uma requisição, três níveis
+
+`GET /api/bancos` devolve as agências e contas aninhadas, então uma
+requisição desenha a árvore inteira. Cada nível tem a sua inclusão, porque
+cada um é um endpoint diferente e precisa saber a que pai pertence — e o pai
+é o nó onde o usuário clicou.
+
+Esta é a única tela que **não** usa o `RecordForm`: os campos mudam conforme
+o nível, então ela monta o próprio formulário. Por isso foi excluída do
+teste que percorre os formulários de `form-layouts.json`.
+
+Desativar conta corrente não exclui: cheques já cadastrados dependem dela.
+
+### 14.4 Lançamento: a validação que vale a pena fazer antes
+
+Partida dobrada exige duas contas **diferentes** e ambas **analíticas**. As
+duas condições são verificáveis sem o servidor, então a tela barra antes de
+chamar a API — o usuário recebe a resposta na hora.
+
+Excluir **estorna**: a API devolve 200 com `status: ESTORNADO` e o
+lançamento continua na lista. A janela de confirmação diz isso com todas as
+letras, porque "excluir" sugeriria o contrário.
+
+### 14.5 Um defeito encontrado na validação
+
+Os combos de conta do lançamento ofereciam `"Fornecedores"` e
+`"Duplicatas a Pagar"` sem código — nomes fixos herdados da versão em
+`localStorage`. Não correspondiam a conta nenhuma: escolhê-los daria erro na
+gravação. Foram removidos; as opções agora saem só de
+`/plano-contas/analiticas`.
+
+### 14.6 Situação final
+
+**As doze telas de cadastro consomem a API.** Dos 17 capítulos de referência
+do livro, os que têm endpoint estão todos cobertos.
+
+Testes: 116. Typecheck limpo, build OK, nenhum `any`.

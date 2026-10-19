@@ -96,29 +96,8 @@
   "bancos": [
     {
       "fields": [
-        "Banco",
-        "Agência"
-      ],
-      "separatorAfter": false
-    },
-    {
-      "fields": [
-        "Nome da Agência",
-        "Gerente"
-      ],
-      "separatorAfter": true
-    },
-    {
-      "fields": [
-        "Conta Corrente",
-        "Limite"
-      ],
-      "separatorAfter": false
-    },
-    {
-      "fields": [
-        "Telefone",
-        "Ramal"
+        "Número",
+        "Banco"
       ],
       "separatorAfter": false
     }
@@ -172,11 +151,16 @@
         "Data",
         "Valor"
       ],
+      "separatorAfter": true
+    },
+    {
+      "fields": [
+        "Conta de Crédito"
+      ],
       "separatorAfter": false
     },
     {
       "fields": [
-        "Conta de Crédito",
         "Conta de Débito"
       ],
       "separatorAfter": true

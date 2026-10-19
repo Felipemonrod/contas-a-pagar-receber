@@ -24,6 +24,9 @@ import { PlanoContasScreen } from './screens/PlanoContasScreen';
 import { DespesasScreen } from './screens/DespesasScreen';
 import { ChequesScreen } from './screens/ChequesScreen';
 import { RemessasScreen } from './screens/RemessasScreen';
+import { CartoriosScreen } from './screens/CartoriosScreen';
+import { LancamentosScreen } from './screens/LancamentosScreen';
+import { BancosScreen } from './screens/BancosScreen';
 import { LADO_A_PAGAR, LADO_A_RECEBER } from './adapters/titulos';
 import {
   OPERACOES_A_PAGAR,
@@ -307,6 +310,17 @@ export default function App() {
     }
     if (route === 'remessas') {
       return <RemessasScreen database={database} onAviso={setNotice} />;
+    }
+
+    if (route === 'cartorios') {
+      return <CartoriosScreen database={database} onAviso={setNotice} />;
+    }
+    if (route === 'lancamentos') {
+      return <LancamentosScreen database={database} onAviso={setNotice} />;
+    }
+
+    if (route === 'bancos') {
+      return <BancosScreen database={database} onAviso={setNotice} />;
     }
 
     // Demais telas: ainda no `localStorage`.
