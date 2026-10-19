@@ -17,6 +17,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -68,8 +69,14 @@ public class Pessoa {
             inverseJoinColumns = @JoinColumn(name = "papel_id"))
     private Set<Papel> papeis = new LinkedHashSet<>();
 
-    /** RELACIONAMENTO 1:N - comercial, cobranca, entrega. */
+    /**
+     * RELACIONAMENTO 1:N - comercial, cobranca, entrega.
+     *
+     * O @OrderBy garante ordem estavel entre leituras: sem ele a ordem do
+     * Set nao e previsivel e a interface mostra os registros embaralhados.
+     */
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
     private Set<Endereco> enderecos = new LinkedHashSet<>();
 
     /**
@@ -77,6 +84,7 @@ public class Pessoa {
      * colunas lado a lado - um grupo repetitivo.
      */
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id")
     private Set<Telefone> telefones = new LinkedHashSet<>();
 
     public void adicionarEndereco(Endereco endereco) {

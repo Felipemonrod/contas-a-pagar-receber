@@ -35,11 +35,22 @@ public class PessoaService {
         this.mapper = mapper;
     }
 
+    /**
+     * Os dois filtros se combinam. Antes um excluia o outro, e buscar por
+     * nome na tela de clientes acabava listando fornecedores.
+     */
     public List<PessoaResponse> listar(String nome, String papel) {
-        if (nome != null && !nome.isBlank()) {
+        boolean temNome = nome != null && !nome.isBlank();
+        boolean temPapel = papel != null && !papel.isBlank();
+
+        if (temNome && temPapel) {
+            return mapper.paraResposta(
+                    pessoaRepository.findByNomeContainingIgnoreCaseAndPapeisCodigoOrderByNome(nome, papel));
+        }
+        if (temNome) {
             return mapper.paraResposta(pessoaRepository.findByNomeContainingIgnoreCaseOrderByNome(nome));
         }
-        if (papel != null && !papel.isBlank()) {
+        if (temPapel) {
             return mapper.paraResposta(pessoaRepository.findByPapeisCodigoOrderByNome(papel));
         }
         return mapper.paraResposta(pessoaRepository.findAll());

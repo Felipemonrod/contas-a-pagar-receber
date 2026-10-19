@@ -3,6 +3,8 @@ package com.ifgoianomih.contas_pagar.contapagar;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,18 +134,8 @@ public class ContaPagarService {
             throw new NegocioException("O vencimento nao pode ser anterior a emissao.");
         }
 
-        Pessoa fornecedor = pessoaRepository.findById(req.pessoaId())
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa", req.pessoaId()));
-
-        // RN04 (livro, cap. 3, p. 56): nao se lanca titulo para quem nao e
-        // fornecedor cadastrado.
-        if (!fornecedor.temPapel(PAPEL_FORNECEDOR)) {
-            throw new NegocioException(
-                    "A pessoa '%s' nao esta cadastrada como fornecedor.".formatted(fornecedor.getNome()));
-        }
-
-        TipoTitulo tipo = tipoTituloRepository.findByCodigo(req.tipoTitulo())
-                .orElseThrow(() -> new NegocioException("Tipo de titulo invalido: " + req.tipoTitulo()));
+        Pessoa fornecedor = exigirPessoaComFornecedor(req.pessoaId());
+        TipoTitulo tipo = exigirTipoTitulo(req.tipoTitulo());
 
         ContaPagar conta = new ContaPagar();
         conta.setNumeroTitulo(req.numeroTitulo());
@@ -194,6 +186,65 @@ public class ContaPagarService {
             throw new NegocioException(
                     "A soma do rateio (%s) difere do valor do titulo (%s).".formatted(somaRateio, conta.getValor()));
         }
+    }
+
+    /**
+     * Ajusta o rateio de um titulo que ja existe.
+     *
+     * Nao da para simplesmente limpar a colecao e reinserir: a tabela tem
+     * restricao de unicidade por (titulo, categoria), e ao reenviar o mesmo
+     * rateio o banco recusa a nova linha antes de a antiga ser removida.
+     *
+     * Entao as linhas que permanecem sao atualizadas no lugar, as que
+     * sairam do pedido sao removidas e so as realmente novas sao criadas.
+     */
+    private void reconciliarRateios(ContaPagar conta, List<RateioRequest> pedidos) {
+        List<RateioRequest> novos = pedidos != null ? pedidos : List.of();
+
+        BigDecimal soma = novos.stream()
+                .map(RateioRequest::valor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (!novos.isEmpty() && soma.compareTo(conta.getValor()) != 0) {
+            throw new NegocioException(
+                    "A soma do rateio (%s) difere do valor do titulo (%s).".formatted(soma, conta.getValor()));
+        }
+
+        Set<Long> categoriasPedidas = novos.stream()
+                .map(RateioRequest::planoContaId)
+                .collect(Collectors.toSet());
+
+        // Fora do pedido: remove (o orphanRemoval cuida do DELETE)
+        conta.getRateios().removeIf(r -> !categoriasPedidas.contains(r.getPlanoConta().getId()));
+
+        for (RateioRequest pedido : novos) {
+            PlanoConta categoria = exigirCategoriaAnalitica(pedido.planoContaId());
+
+            conta.getRateios().stream()
+                    .filter(r -> r.getPlanoConta().getId().equals(categoria.getId()))
+                    .findFirst()
+                    .ifPresentOrElse(
+                            existente -> existente.setValor(pedido.valor()),
+                            () -> {
+                                RateioContaPagar r = new RateioContaPagar();
+                                r.setContaPagar(conta);
+                                r.setPlanoConta(categoria);
+                                r.setValor(pedido.valor());
+                                conta.getRateios().add(r);
+                            });
+        }
+    }
+
+    /** RN01: conta consolidada agrupa outras e nao aceita lancamento. */
+    private PlanoConta exigirCategoriaAnalitica(Long planoContaId) {
+        PlanoConta categoria = planoContaRepository.findById(planoContaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Categoria", planoContaId));
+
+        if (!categoria.aceitaLancamento()) {
+            throw new NegocioException(
+                    "A categoria '%s' e consolidada e nao aceita lancamento.".formatted(categoria.getDescricao()));
+        }
+        return categoria;
     }
 
     // ------------------------------------------------------------------
@@ -273,6 +324,21 @@ public class ContaPagarService {
             throw new NegocioException("Titulo com pagamento registrado nao pode ser alterado.");
         }
 
+        // Numero do titulo: so valida a unicidade se de fato mudou.
+        if (!conta.getNumeroTitulo().equals(req.numeroTitulo())) {
+            if (contaRepository.existsByNumeroTitulo(req.numeroTitulo())) {
+                throw new NegocioException(
+                        "Ja existe um titulo com o numero " + req.numeroTitulo() + ".");
+            }
+            conta.setNumeroTitulo(req.numeroTitulo());
+        }
+
+        // Trocar a pessoa exige o mesmo papel que o lancamento exige.
+        if (!conta.getPessoa().getId().equals(req.pessoaId())) {
+            conta.setPessoa(exigirPessoaComFornecedor(req.pessoaId()));
+        }
+
+        conta.setTipoTitulo(exigirTipoTitulo(req.tipoTitulo()));
         conta.setValor(req.valor());
         conta.setEmissao(req.emissao());
         conta.setVencimento(req.vencimento());
@@ -281,8 +347,7 @@ public class ContaPagarService {
         conta.setAcrescimoDia(ContaPagarMapper.ouZero(req.acrescimoDia()));
         conta.setObservacao(req.observacao());
 
-        conta.getRateios().clear();
-        aplicarRateios(conta, req.rateios());
+        reconciliarRateios(conta, req.rateios());
 
         return mapper.paraResposta(contaRepository.save(conta));
     }
@@ -312,6 +377,27 @@ public class ContaPagarService {
         vencidas.forEach(c -> c.setSituacao(situacaoVencida));
         contaRepository.saveAll(vencidas);
         return vencidas.size();
+    }
+
+    /**
+     * RN04 (livro, cap. 3, p. 56): titulo so pode ser vinculado a quem esta
+     * cadastrado com o papel correspondente. Vale tanto no lancamento
+     * quanto na troca de pessoa durante a alteracao.
+     */
+    private Pessoa exigirPessoaComFornecedor(Long pessoaId) {
+        Pessoa pessoa = pessoaRepository.findById(pessoaId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pessoa", pessoaId));
+
+        if (!pessoa.temPapel(PAPEL_FORNECEDOR)) {
+            throw new NegocioException(
+                    "A pessoa '%s' nao esta cadastrada como fornecedor.".formatted(pessoa.getNome()));
+        }
+        return pessoa;
+    }
+
+    private TipoTitulo exigirTipoTitulo(String codigo) {
+        return tipoTituloRepository.findByCodigo(codigo)
+                .orElseThrow(() -> new NegocioException("Tipo de titulo invalido: " + codigo));
     }
 
     private SituacaoConta situacao(String codigo) {

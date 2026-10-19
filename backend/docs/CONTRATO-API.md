@@ -42,7 +42,7 @@ Nos demais, `campos` é `[]` e a mensagem já é legível para o usuário final.
 
 | Método | Rota | Observação |
 |---|---|---|
-| GET | `/api/pessoas` | filtros opcionais `?nome=` e `?papel=CLIENTE\|FORNECEDOR` |
+| GET | `/api/pessoas` | filtros `?nome=` e `?papel=CLIENTE\|FORNECEDOR` — **combináveis** |
 | GET | `/api/pessoas/{id}` | |
 | POST | `/api/pessoas` | 201 |
 | PUT | `/api/pessoas/{id}` | substitui telefones e endereços |
@@ -71,6 +71,8 @@ Nos demais, `campos` é `[]` e a mensagem já é legível para o usuário final.
 ```
 
 Obrigatórios: `nome`, `documento` (único), `papeis` (não vazio). Em endereço: `logradouro`, `cidade`, `uf`. Em telefone: `numero`.
+
+Telefones e endereços são devolvidos **na ordem em que foram cadastrados**.
 
 **Resposta (201):**
 
@@ -159,7 +161,7 @@ Categorias financeiras hierárquicas. Conta **consolidada** agrupa outras e não
 | GET | `/api/contas-pagar/inadimplentes` | vencidos em aberto |
 | GET | `/api/contas-pagar/{id}/simulacao?data=` | **não grava nada** — prévia do valor devido |
 | POST | `/api/contas-pagar` | 201 |
-| PUT | `/api/contas-pagar/{id}` | falha se já houver pagamento |
+| PUT | `/api/contas-pagar/{id}` | atualiza **todos** os campos, inclusive `numeroTitulo` e `pessoaId`; falha se já houver pagamento |
 | POST | `/api/contas-pagar/{id}/pagamento` | registra quitação, total ou parcial |
 | DELETE | `/api/contas-pagar/{id}` | **cancela**, devolve 200 com o recurso |
 
@@ -221,6 +223,16 @@ Categorias financeiras hierárquicas. Conta **consolidada** agrupa outras e não
 
 `valorPago` é **opcional** — omitindo, o sistema cobra o valor devido integral com desconto ou juros da data.
 `formaPagamento`: `DINHEIRO` · `PIX` · `BOLETO` · `TRANSFERENCIA` · `CHEQUE` · `CARTAO`
+
+---
+
+### Observações sobre o PUT
+
+- Atualiza **todos** os campos do corpo, inclusive `numeroTitulo`, `pessoaId` e `tipoTitulo`.
+- Trocar o `numeroTitulo` para um já existente devolve **422**.
+- Trocar a `pessoaId` para quem não tem o papel exigido devolve **422** (a RN04 vale também na alteração).
+- O `rateios` é **reconciliado**: as categorias que permanecem são atualizadas, as que saíram do corpo são removidas e só as novas são criadas. Reenviar o mesmo rateio é seguro.
+- Omitir `rateios` remove todos os rateios do título.
 
 ---
 

@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -28,7 +29,9 @@ import lombok.Setter;
  * no banco (uk_rateio_cp).
  */
 @Entity
-@Table(name = "rateio_conta_receber")
+@Table(name = "rateio_conta_receber",
+       uniqueConstraints = @UniqueConstraint(
+               name = "uk_rateio_cr", columnNames = {"conta_receber_id", "plano_conta_id"}))
 @Getter
 @Setter
 public class RateioContaReceber {

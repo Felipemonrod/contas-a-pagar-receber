@@ -19,5 +19,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     /** Navega pelo N:N: pessoas que tenham o papel informado. */
     List<Pessoa> findByPapeisCodigoOrderByNome(String codigo);
 
+    /** Nome e papel combinados - usado quando a tela filtra pelos dois. */
+    List<Pessoa> findByNomeContainingIgnoreCaseAndPapeisCodigoOrderByNome(String nome, String codigo);
+
     List<Pessoa> findByAtivoTrueOrderByNome();
 }
