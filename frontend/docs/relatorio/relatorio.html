@@ -1,0 +1,883 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório — Contas a Pagar e a Receber</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+
+  :root {
+    --navy: #000080;
+    --tinta: #1f2225;
+    --suave: #5b6670;
+    --linha: #c7ccd1;
+    --fundo-code: #f4f5f7;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Calibri, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: var(--tinta);
+  }
+
+  h1, h2, h3 { color: var(--navy); line-height: 1.25; }
+  h2 {
+    font-size: 16pt;
+    margin: 0 0 4mm;
+    padding-bottom: 2mm;
+    border-bottom: 2px solid var(--navy);
+  }
+  h3 { font-size: 12pt; margin: 7mm 0 2mm; }
+  h4 { font-size: 10.5pt; margin: 5mm 0 1mm; color: var(--tinta); }
+  p { margin: 0 0 3mm; text-align: justify; }
+  ul, ol { margin: 0 0 3mm; padding-left: 6mm; }
+  li { margin-bottom: 1mm; }
+  code {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 9pt;
+    background: var(--fundo-code);
+    padding: 0 1mm;
+    border-radius: 2px;
+  }
+  pre {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 8.5pt;
+    line-height: 1.4;
+    background: var(--fundo-code);
+    border: 1px solid var(--linha);
+    border-left: 3px solid var(--navy);
+    padding: 2.5mm 3mm;
+    margin: 0 0 3mm;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+  }
+  pre code { background: none; padding: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+    margin: 0 0 4mm;
+  }
+  th, td {
+    border: 1px solid var(--linha);
+    padding: 1.4mm 2mm;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #e8eaed; font-weight: 600; }
+
+  /* Capa ------------------------------------------------------------ */
+  .capa {
+    height: 247mm;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    page-break-after: always;
+  }
+  .capa .instituicao { font-size: 12pt; color: var(--suave); margin-bottom: 30mm; }
+  .capa h1 { font-size: 26pt; margin: 0 0 3mm; }
+  .capa .subtitulo { font-size: 13pt; color: var(--suave); margin-bottom: 28mm; }
+  .capa .ficha { font-size: 11pt; line-height: 2; }
+  .capa .data { margin-top: 30mm; font-size: 10pt; color: var(--suave); }
+
+  /* Sumário ---------------------------------------------------------- */
+  .sumario { page-break-after: always; }
+  .sumario ol { list-style: none; padding: 0; font-size: 11pt; }
+  .sumario > ol > li { margin-bottom: 2mm; font-weight: 600; }
+  .sumario ol ol { padding-left: 6mm; font-weight: 400; font-size: 10pt; }
+
+  section { page-break-before: always; }
+  section:first-of-type { page-break-before: avoid; }
+
+  h3, h4 { page-break-after: avoid; }
+  pre, table, figure { page-break-inside: avoid; }
+
+  .nota {
+    border-left: 3px solid #8a9199;
+    background: #f7f8f9;
+    padding: 2.5mm 3mm;
+    margin: 0 0 4mm;
+    font-size: 9.5pt;
+  }
+  .nota strong { color: var(--navy); }
+
+  figure { margin: 0 0 4mm; text-align: center; }
+  figcaption { font-size: 9pt; color: var(--suave); margin-top: 1.5mm; }
+</style>
+</head>
+<body>
+
+<div class="capa">
+  <div class="instituicao">
+    Instituto Federal Goiano — Campus Morrinhos<br>
+    Curso de Bacharelado em Sistemas de Informação
+  </div>
+
+  <h1>Contas a Pagar e a Receber</h1>
+  <div class="subtitulo">
+    Interface web em React e TypeScript, integrada a uma API REST
+  </div>
+
+  <div class="ficha">
+    <strong>Autor:</strong> Felipe Montalvão Rodrigues<br>
+    <strong>Front-end:</strong> React 19 + TypeScript + CSS puro (Vite)<br>
+    <strong>Back-end consumido:</strong> Spring Boot + MySQL<br>
+    <strong>Referência:</strong> SHIRAISHI, G.; CÔRTES, P.
+    <em>Delphi 4 — Contas a Pagar e a Receber</em>
+  </div>
+
+  <div class="data">Morrinhos, outubro de 2026</div>
+</div>
+
+<div class="sumario">
+  <h2>Sumário</h2>
+  <ol>
+    <li>1. Design
+      <ol>
+        <li>1.1 Do protótipo à tela</li>
+        <li>1.2 A linguagem visual e como ela foi reproduzida em CSS</li>
+        <li>1.3 Estados, foco e teclado</li>
+        <li>1.4 Layout adaptável</li>
+      </ol>
+    </li>
+    <li>2. Implementação
+      <ol>
+        <li>2.1 Organização das pastas</li>
+        <li>2.2 TypeScript sem <code>any</code></li>
+        <li>2.3 Um formulário que se monta a partir de um JSON</li>
+        <li>2.4 Duas telas que servem quatro cadastros</li>
+        <li>2.5 Estado: o que a tela guarda e o que ela busca</li>
+        <li>2.6 Testes</li>
+      </ol>
+    </li>
+    <li>3. Integração com a API
+      <ol>
+        <li>3.1 O caminho de uma requisição</li>
+        <li>3.2 O cliente HTTP</li>
+        <li>3.3 O padrão Adapter</li>
+        <li>3.4 O hook de carregamento</li>
+        <li>3.5 O problema que mais deu trabalho: PUT substitui a coleção</li>
+        <li>3.6 Regras de negócio na interface</li>
+        <li>3.7 Como a integração foi validada</li>
+      </ol>
+    </li>
+    <li>4. Uso de inteligência artificial
+      <ol>
+        <li>4.1 Como a IA foi usada</li>
+        <li>4.2 O que ela acertou</li>
+        <li>4.3 O que ela errou, e como os erros apareceram</li>
+        <li>4.4 O método que sobrou</li>
+      </ol>
+    </li>
+    <li>Anexo A — Como executar</li>
+    <li>Anexo B — Telas e endpoints</li>
+  </ol>
+</div>
+
+<section>
+<h2>1. Design</h2>
+
+<h3>1.1 Do protótipo à tela</h3>
+
+<p>O ponto de partida foi um protótipo no Figma que reproduz a aparência do
+sistema original do livro — um aplicativo Delphi de 1998, com barra lateral em
+forma de pastas de arquivo, faixas azul-marinho e controles em relevo. A
+decisão de projeto, tomada logo no começo, foi <strong>não modernizar</strong>:
+o trabalho é implementar aquele protótipo, não propor outro.</p>
+
+<p>Isso tem uma consequência prática que atravessa o relatório inteiro. A tela
+fala a língua do livro — "Registro", "Cliente", "CGC", "Nova Conta" — enquanto
+a API fala a língua do contrato REST — <code>id</code>, <code>nome</code>,
+<code>documento</code>, <code>codigo</code>. As duas línguas não se encontram
+por acaso: existe uma camada só para traduzir uma na outra, descrita na seção
+3.3.</p>
+
+<p>Os elementos gráficos não foram redesenhados à mão: os 163 vetores SVG do
+protótipo (as pastas marrons, as etiquetas azuis, os ícones) foram exportados e
+guardados em <code>public/assets/</code>, com as dimensões originais anotadas em
+<code>src/assets.json</code>. Um script, <code>scripts/verify-assets.mjs</code>,
+confere que nenhum deles sumiu ou mudou de tamanho — é o que impede o layout de
+escorregar sem ninguém perceber.</p>
+
+<h3>1.2 A linguagem visual e como ela foi reproduzida em CSS</h3>
+
+<p>Todo o estilo está em um único arquivo, <code>src/styles.css</code>, com 210
+linhas. Não há Tailwind nem biblioteca de componentes: o enunciado pede CSS
+puro, e o resultado é que cada efeito visível na tela corresponde a uma regra
+que dá para apontar com o dedo.</p>
+
+<p>As cores e os dois relevos característicos do Delphi são variáveis CSS
+declaradas uma vez:</p>
+
+<pre><code>:root {
+  --navy: #000080;        /* faixas de título */
+  --sidebar: #173652;     /* fundo da barra lateral */
+  --workspace: #d5d5d5;   /* área de trabalho */
+  --folder: #b98f59;      /* marrom das pastas */
+  --raised: 1px 2px 2px #00000040, inset 1px 1px 0 #ffffff6b,
+            inset -1px -1px 0 #00000052;
+  --sunken: inset 2px 2px 3px #00000055, inset -1px -1px 0 #ffffff8c;
+}</code></pre>
+
+<p><code>--raised</code> e <code>--sunken</code> são o miolo da aparência. O
+relevo do Delphi é uma luz vindo de cima e à esquerda: uma borda interna clara
+em cima, uma escura embaixo, e uma sombra projetada fora. O botão pressionado
+é o mesmo efeito invertido — por isso <code>--sunken</code> existe como um par
+de <code>--raised</code>, e trocar um pelo outro no <code>:active</code> basta
+para o botão "afundar".</p>
+
+<p>Falta um detalhe que o CSS sozinho não dá: no Delphi, o texto do botão
+pressionado também se desloca. Daí a regra
+<code>.delphi-button:active span { transform: translate(2px, 2px); }</code> —
+dois pixels para baixo e para a direita, que é o que o protótipo mostra.</p>
+
+<h3>1.3 Estados, foco e teclado</h3>
+
+<p>Cada controle tem quatro estados: normal, <em>hover</em>, pressionado e foco
+por teclado. O último é o que costuma ficar de fora, e foi tratado de propósito:
+<code>:focus-visible</code> desenha um contorno azul de 2 px afastado 3 px do
+controle, visível sobre o cinza e sobre o azul-marinho.</p>
+
+<p>Os modais usam o elemento <code>&lt;dialog&gt;</code> nativo do HTML em vez
+de uma <code>div</code> com <code>position: fixed</code>. A escolha foi
+deliberada: o <code>&lt;dialog&gt;</code> prende o foco do teclado dentro de si,
+fecha com <kbd>Esc</kbd> e devolve o foco ao botão de origem sem que seja
+preciso escrever uma linha de JavaScript para isso. Um modal caseiro exigiria
+reimplementar as três coisas — e normalmente só a primeira é lembrada.</p>
+
+<p>Quando o usuário troca de tela, o foco vai para o título <code>&lt;h1&gt;</code>
+da tela nova. Sem isso, quem navega por teclado continuaria no mesmo ponto da
+barra lateral, sem saber que o conteúdo mudou.</p>
+
+<h3>1.4 Layout adaptável</h3>
+
+<p>O protótipo foi desenhado para uma janela larga. Em telas menores, a barra
+lateral recolhe e as tabelas ganham rolagem interna, em vez de empurrar a página
+para os lados. A estrutura principal é uma grade de duas colunas
+(<code>grid-template-columns: 240px minmax(0, 1fr)</code>); o
+<code>minmax(0, 1fr)</code> é o que impede uma tabela larga de esticar a coluna
+além da janela — um detalhe pequeno que, sem ele, quebra o layout inteiro.</p>
+</section>
+
+<section>
+<h2>2. Implementação</h2>
+
+<h3>2.1 Organização das pastas</h3>
+
+<p>São 48 arquivos TypeScript em <code>src/</code>, divididos por
+responsabilidade e não por tela:</p>
+
+<table>
+  <tr><th>Pasta</th><th>Linhas</th><th>O que vive ali</th></tr>
+  <tr><td><code>src/api/</code></td><td>1.314</td>
+      <td>tipos do contrato, cliente HTTP e uma função por endpoint</td></tr>
+  <tr><td><code>src/adapters/</code></td><td>1.871</td>
+      <td>tradução entre o formato da tela e o da API</td></tr>
+  <tr><td><code>src/screens/</code></td><td>3.555</td>
+      <td>as telas e suas janelas de operação</td></tr>
+  <tr><td><code>src/hooks/</code></td><td>75</td>
+      <td><code>useRecurso</code>: carregando, erro e dados de uma busca</td></tr>
+  <tr><td><code>src/ui/</code></td><td>39</td>
+      <td>os três avisos: carregando, vazio e erro</td></tr>
+  <tr><td><code>src/test-utils/</code></td><td>1.093</td>
+      <td>a API falsa usada pelos testes</td></tr>
+  <tr><td>raiz de <code>src/</code></td><td>1.926</td>
+      <td><code>App.tsx</code>, <code>data.ts</code>,
+          <code>components.tsx</code>, <code>RecordForm.tsx</code></td></tr>
+</table>
+
+<p>A regra que organiza isso é simples de enunciar e foi seguida sem exceção:
+<strong>nenhuma tela chama <code>fetch</code>, e nenhuma tela monta o corpo de
+uma requisição</strong>. A tela chama uma função de <code>src/api/</code>,
+passando pelo adapter. Quem quiser saber o que vai pela rede olha em dois
+lugares, não em quinze.</p>
+
+<p>As dependências de produção são três: <code>react</code>,
+<code>react-dom</code> e <code>@fontsource/inter</code> (a fonte, servida
+localmente em vez de buscada no Google Fonts). Não há biblioteca de requisição,
+de formulário, de estado ou de componentes. Tudo o que o sistema faz está
+escrito no repositório.</p>
+
+<h3>2.2 TypeScript sem <code>any</code></h3>
+
+<p>O enunciado proíbe <code>any</code>, e a proibição é mais interessante do que
+parece: ela aparece exatamente nos pontos em que dados de fora entram no
+programa. Dois casos concretos:</p>
+
+<p><strong>O corpo de uma resposta de erro.</strong> <code>response.json()</code>
+devolve algo que o compilador não conhece. Em vez de afirmar que é um erro da
+API, o código <em>pergunta</em>:</p>
+
+<pre><code>function pareceCorpoDeErro(valor: unknown): valor is CorpoDeErro {
+  if (typeof valor !== 'object' || valor === null) return false;
+  const possivel = valor as Partial&lt;CorpoDeErro&gt;;
+  return typeof possivel.mensagem === 'string'
+      &amp;&amp; typeof possivel.status === 'number';
+}</code></pre>
+
+<p>O tipo <code>valor is CorpoDeErro</code> é um <em>type guard</em>: depois de
+um <code>if (pareceCorpoDeErro(conteudo))</code>, o compilador passa a tratar
+<code>conteudo</code> como <code>CorpoDeErro</code> dentro daquele bloco. É a
+diferença entre verificar e simplesmente alegar.</p>
+
+<p><strong>O endereço da API.</strong> O caminho natural seria
+<code>import.meta.env.VITE_API_URL</code>, mas o tipo de
+<code>import.meta.env</code> inclui <code>[key: string]: any</code> — ler
+qualquer variável de ambiente traz um <code>any</code> junto. Como o endereço é
+fixo e documentado, virou uma constante comum:</p>
+
+<pre><code>export const BASE_URL = 'http://localhost:8080/api';</code></pre>
+
+<p>Perde-se a configuração por ambiente, que este trabalho não usa; ganha-se um
+arquivo sem <code>any</code> e uma linha que qualquer pessoa do grupo sabe onde
+trocar.</p>
+
+<h3>2.3 Um formulário que se monta a partir de um JSON</h3>
+
+<p>São onze formulários de cadastro, todos com a mesma aparência e as mesmas
+regras: campos agrupados em linhas, separadores pretos, asterisco no
+obrigatório, máscara em dinheiro e data. Escrever onze componentes seria onze
+vezes a mesma coisa — e onze lugares para esquecer de corrigir um defeito.</p>
+
+<p>Em vez disso, o agrupamento dos campos extraído do Figma virou dados, em
+<code>src/form-layouts.json</code>, e um único componente
+(<code>RecordForm.tsx</code>, 301 linhas) desenha qualquer um deles. O tipo das
+telas sai do próprio JSON:</p>
+
+<pre><code>export type Entity = keyof typeof formLayouts;</code></pre>
+
+<p>Essa linha faz mais do que parece. Se alguém acrescentar uma tela ao JSON sem
+configurá-la em <code>data.ts</code>, o compilador acusa. E o teste que percorre
+<code>Object.keys(layouts)</code> passa a cobrir a tela nova automaticamente,
+sem ninguém lembrar de incluí-la.</p>
+
+<h3>2.4 Duas telas que servem quatro cadastros</h3>
+
+<p>No livro, Clientes e Fornecedores são dois cadastros; Pagamentos e
+Recebimentos, duas telas. Na API, cada par é a mesma coisa vista de dois
+ângulos: cliente e fornecedor são a mesma <code>Pessoa</code> com
+<code>papel</code> diferente, e os dois títulos têm endpoints espelhados.</p>
+
+<p>Duas telas atendem os quatro cadastros, parametrizadas:</p>
+
+<ul>
+  <li><code>PessoasScreen</code> recebe o <code>Papel</code> — <code>CLIENTE</code>
+      ou <code>FORNECEDOR</code> — e muda o título, as colunas e o filtro.</li>
+  <li><code>TitulosScreen</code> recebe uma <code>ConfiguracaoDoLado</code> (os
+      rótulos: "Fornecedor" ou "Cliente", "Quitar" ou "Receber") e um objeto
+      <code>OperacoesDeTitulo</code> com as funções da API daquele lado.</li>
+</ul>
+
+<p>O segundo caso é o mais ilustrativo. A tela não sabe se está lidando com
+contas a pagar ou a receber: ela recebe as operações prontas e as chama. Quem
+decide é <code>operacoes-de-titulo.ts</code>, que liga cada lado à sua API. É o
+mesmo princípio da injeção de dependência, escrito sem framework nenhum.</p>
+
+<h3>2.5 Estado: o que a tela guarda e o que ela busca</h3>
+
+<p>Não há biblioteca de estado global. Cada tela guarda apenas três coisas: qual
+registro está selecionado, qual janela está aberta, e o que o usuário digitou na
+busca. <strong>Os dados em si nunca são guardados</strong> — eles vêm do
+<code>useRecurso</code> e são buscados de novo depois de cada gravação.</p>
+
+<p>Isso é uma decisão, não um descuido. Guardar a lista em memória e atualizá-la
+à mão depois de um POST cria duas verdades: a do servidor e a da tela. Quando a
+API calcula algo que o front-end não calcula — saldo, dias de atraso, situação
+do título — a cópia local envelhece e passa a mentir. Buscar de novo custa uma
+requisição e elimina a classe inteira de defeitos.</p>
+
+<div class="nota">
+<strong>Nota histórica.</strong> A primeira versão do front-end guardava tudo em
+<code>localStorage</code>, porque a API ainda não existia. Conforme as telas
+foram integradas, essa camada ficou sem uso — e foi removida inteira, 871
+linhas, num commit só. Código morto que ninguém apaga vira a primeira coisa que
+alguém lê por engano na hora de explicar o sistema.
+</div>
+
+<h3>2.6 Testes</h3>
+
+<p>São <strong>120 testes</strong> em cinco arquivos, rodando em Vitest com
+Testing Library:</p>
+
+<table>
+  <tr><th>Arquivo</th><th>Testes</th><th>O que cobre</th></tr>
+  <tr><td><code>App.test.tsx</code></td><td>24</td>
+      <td>navegação, formulários de todas as telas, busca, operações</td></tr>
+  <tr><td><code>adapters/pessoas.test.ts</code></td><td>47</td>
+      <td>a tradução mais complexa: papéis, telefones, endereços</td></tr>
+  <tr><td><code>adapters/plano-contas.test.ts</code></td><td>16</td>
+      <td>árvore recursiva e contas analíticas</td></tr>
+  <tr><td><code>adapters/titulos.test.ts</code></td><td>13</td>
+      <td>os dois lados do caixa e os rateios</td></tr>
+  <tr><td><code>adapters/despesas.test.ts</code></td><td>11</td>
+      <td>previsão de gasto e geração de título</td></tr>
+</table>
+
+<p>Os testes de tela não falam com o servidor:
+<code>src/test-utils/apiFalsa.ts</code> substitui <code>fetch</code> por uma API
+em memória, com 1.093 linhas. Ela não é um <em>mock</em> que devolve sempre o
+mesmo objeto — reproduz as regras do back-end, <strong>inclusive as
+recusas</strong>: 422 ao cancelar título já pago, 409 ao excluir banco com
+agência, 422 ao lançar em conta consolidada. É o que permite testar o caminho de
+erro, que é justamente o que ninguém testa à mão.</p>
+</section>
+
+<section>
+<h2>3. Integração com a API</h2>
+
+<p>Esta é a seção central do trabalho. O enunciado exige <em>pelo menos uma</em>
+funcionalidade integrada à API REST; o resultado entregue tem
+<strong>as doze telas de cadastro consumindo a API</strong>, sem nenhuma
+dependência de armazenamento no navegador.</p>
+
+<h3>3.1 O caminho de uma requisição</h3>
+
+<p>Toda interação com o servidor percorre a mesma sequência de quatro camadas:</p>
+
+<pre><code>Tela (vocabulário do livro)
+   ↓  adapter: registroParaPessoa()
+Corpo no formato do contrato
+   ↓  src/api/pessoas.ts: criarPessoa()
+Cliente HTTP: requisitar&lt;PessoaApi&gt;('/pessoas', { metodo: 'POST', corpo })
+   ↓  fetch
+API REST (Spring Boot)</code></pre>
+
+<p>E a volta é a mesma sequência invertida: o JSON vira
+<code>PessoaApi</code>, o adapter transforma em <code>RecordData</code>, e a
+tabela desenha. Cada camada tem uma responsabilidade que cabe numa frase, o que
+torna fácil dizer onde procurar quando algo dá errado.</p>
+
+<h3>3.2 O cliente HTTP</h3>
+
+<p>Um arquivo, <code>src/api/http.ts</code>, concentra tudo que é HTTP. Ele faz
+três coisas: monta a URL, envia e recebe JSON, e transforma os erros do contrato
+em exceções tipadas.</p>
+
+<p>O contrato define um formato único de erro para os status 400, 404, 409 e
+422, com uma <code>mensagem</code> já em português e legível para o usuário
+final. Isso permitiu uma decisão que simplificou muito as telas:
+<strong>a mensagem da API é exibida como está</strong>, sem tabela de tradução
+no front-end. Quando o servidor diz <em>"Titulo com pagamento registrado nao
+pode ser cancelado"</em>, é isso que aparece na tela.</p>
+
+<p>Há duas classes de erro, e a distinção importa para o usuário:</p>
+
+<ul>
+  <li><code>ErroApi</code> — o servidor respondeu e recusou. Carrega
+      <code>status</code>, <code>codigo</code> (por exemplo
+      <code>REGRA_NEGOCIO</code>) e a lista de <code>campos</code> rejeitados
+      nos erros de validação.</li>
+  <li><code>ErroDeRede</code> — o navegador não conseguiu falar com o servidor.
+      A mensagem já sugere a causa provável: <em>"Verifique se a API está
+      rodando em http://localhost:8080/api"</em>.</li>
+</ul>
+
+<p>A diferença é concreta: no primeiro caso o usuário precisa corrigir o que
+digitou; no segundo, precisa subir o back-end. Um erro genérico não diz qual
+dos dois é.</p>
+
+<h3>3.3 O padrão Adapter</h3>
+
+<p>O problema que o padrão resolve aqui é literal: duas interfaces incompatíveis
+que precisam conversar sem que nenhuma das duas mude.</p>
+
+<table>
+  <tr><th>A tela diz</th><th>A API diz</th></tr>
+  <tr><td>Registro</td><td><code>id</code></td></tr>
+  <tr><td>Cliente / Fornecedor</td><td><code>nome</code> + <code>papeis</code></td></tr>
+  <tr><td>CPF / CNPJ</td><td><code>documento</code></td></tr>
+  <tr><td>Endereço (uma linha)</td><td><code>logradouro</code>, <code>numero</code>,
+      <code>complemento</code></td></tr>
+  <tr><td>"R$ 1.500,00"</td><td><code>1500.00</code></td></tr>
+  <tr><td>"15/11/2026"</td><td><code>"2026-11-15"</code></td></tr>
+</table>
+
+<p>A tela trabalha com um tipo deliberadamente simples:</p>
+
+<pre><code>export type RecordData = { id: string; [key: string]: string };</code></pre>
+
+<p>Tudo é texto, porque tudo o que um formulário HTML produz é texto. Número,
+data e enumeração <strong>só existem do lado da API</strong>, e a conversão
+acontece em um lugar: o adapter. Cada um expõe duas funções simétricas — por
+exemplo <code>pessoaParaRegistro()</code> e <code>registroParaPessoa()</code>.</p>
+
+<p>O ganho prático apareceu quando o back-end mudou. Quando a API ganhou quatro
+campos novos em <code>Pessoa</code> (condição de pagamento, desconto negociado,
+prazo de entrega, vendedor), a alteração foi no adapter e no JSON de layout. As
+telas não foram tocadas. É exatamente isso que o padrão promete, e foi
+verificado na prática.</p>
+
+<h3>3.4 O hook de carregamento</h3>
+
+<p>Toda tela integrada precisa das mesmas três informações: se está carregando,
+se deu erro, e quais são os dados. Em vez de repetir esse controle doze vezes,
+ele está em <code>useRecurso&lt;T&gt;</code>, com 75 linhas.</p>
+
+<pre><code>const recurso = useRecurso(
+  () =&gt; listarPessoas(papel, busca),
+  `pessoas:${papel}:${busca}`,
+);</code></pre>
+
+<p>O segundo argumento é uma <strong>chave descritiva</strong>, e não a lista de
+dependências habitual do <code>useEffect</code>. A escolha foi deliberada: a
+chave diz, em texto legível, o que provoca uma nova busca. Quem lê
+<code>'pessoas:CLIENTE:erica'</code> entende na hora; quem lê
+<code>[papel, busca]</code> precisa procurar onde essas variáveis são usadas.</p>
+
+<p>Duas sutilezas de React que o hook resolve, e que valem ser explicadas:</p>
+
+<ul>
+  <li>A função <code>buscar</code> é recriada a cada <em>render</em>. Se ela
+      entrasse na lista de dependências, o efeito rodaria sem parar. Ela é
+      guardada numa <code>useRef</code>, de onde o efeito lê sempre a versão
+      mais recente sem depender dela.</li>
+  <li>Se o usuário digitar na busca enquanto uma resposta antiga está a caminho,
+      a resposta antiga pode chegar depois da nova. A função de limpeza marca
+      <code>cancelado = true</code>, e o resultado tardio é descartado em vez de
+      sobrescrever os dados corretos.</li>
+</ul>
+
+<h3>3.5 O problema que mais deu trabalho: PUT substitui a coleção</h3>
+
+<p>Este foi o defeito mais instrutivo do projeto, e vale descrevê-lo inteiro,
+porque ele não aparece em teste de tela nenhum e não dá erro.</p>
+
+<p>No contrato, <code>PUT /api/pessoas/{id}</code> <strong>substitui</strong> as
+coleções que recebe. Se o corpo trouxer um telefone, a pessoa passa a ter um
+telefone — os outros somem. O formulário do livro mostra um telefone e um
+endereço; a pessoa, no banco, pode ter vários.</p>
+
+<p>O resultado: editar o nome de um cliente apagava silenciosamente o FAX dele.
+A tela mostrava "Cliente atualizado", a requisição retornava 200, e um dado
+tinha sido perdido.</p>
+
+<p>A correção foi dar ao adapter acesso ao registro atual, para ele devolver o
+que o formulário não mostra:</p>
+
+<pre><code>registroParaPessoa(valores, papel, pessoaAtual?)</code></pre>
+
+<p>O mesmo problema apareceu em três outros lugares — papéis, endereços e os
+rateios de um título — e a mesma correção se aplicou. O caso dos papéis era o
+mais grave: uma pessoa que fosse cliente <em>e</em> fornecedor perdia um dos
+dois papéis ao ser editada por qualquer uma das duas telas.</p>
+
+<p>Houve ainda um agravante que custou a aparecer. O primeiro conserto lia
+<code>telefones[0]</code>, supondo que o primeiro item fosse o exibido. Mas o
+back-end devolve um <code>Set</code> sem ordem garantida, e em alguns registros
+o FAX vinha primeiro — a tela mostrava o FAX no campo "Telefone" e, ao salvar,
+gravava um no lugar do outro. A correção final seleciona pelo
+<strong>tipo</strong>, não pela posição, e usa a mesma função na leitura e na
+gravação:</p>
+
+<pre><code>export function indiceDoTelefoneExibido(telefones: { tipo: string }[]): number {
+  const comercial = telefones.findIndex(item =&gt; item.tipo === 'COMERCIAL');
+  return comercial === -1 ? (telefones.length ? 0 : -1) : comercial;
+}</code></pre>
+
+<p>Usar a mesma função nos dois sentidos é o que garante que a tela grave
+exatamente o item que mostrou. São 47 testes no adapter de pessoas — a maior
+concentração do projeto — e a razão é esta.</p>
+
+<h3>3.6 Regras de negócio na interface</h3>
+
+<p>O back-end valida tudo; a questão é <em>quando</em> o usuário descobre. A
+política adotada tem três casos, e a diferença entre eles é se o navegador tem
+como saber a resposta sozinho:</p>
+
+<table>
+  <tr><th>Caso</th><th>Quem responde</th><th>Exemplo</th></tr>
+  <tr>
+    <td>O navegador tem os dados</td>
+    <td>a tela barra antes de chamar a API</td>
+    <td>RN12: a soma do rateio precisa bater com o valor do título</td>
+  </tr>
+  <tr>
+    <td>A tela pode evitar a escolha inválida</td>
+    <td>o formulário só oferece o que é válido</td>
+    <td>RN09: só título vencido e em aberto vai a protesto — a lista vem de
+        <code>/contas-receber/inadimplentes</code></td>
+  </tr>
+  <tr>
+    <td>Só o servidor sabe</td>
+    <td>a API recusa e a tela mostra a mensagem dela</td>
+    <td>RN11: título com pagamento registrado não pode ser cancelado</td>
+  </tr>
+</table>
+
+<p>O segundo caso é o mais interessante de defender. No ciclo do cheque
+(<code>EM_CARTEIRA → DEPOSITADO → COMPENSADO</code> ou
+<code>DEVOLVIDO</code>), a janela oferece <strong>apenas os destinos válidos a
+partir de onde o cheque está</strong>. Um cheque compensado não mostra botão de
+confirmar. A alternativa — aceitar qualquer destino e deixar a API recusar com
+422 — funcionaria, mas transformaria a interface num jogo de adivinhação.</p>
+
+<h3>3.7 Como a integração foi validada</h3>
+
+<p>Duas camadas de verificação, com propósitos diferentes.</p>
+
+<p><strong>Automática.</strong> Os 120 testes rodam contra a API falsa e cobrem
+o caminho feliz e o de erro. São rápidos e rodam a cada alteração.</p>
+
+<p><strong>Manual, contra o back-end real.</strong> Cada operação foi exercida
+no navegador e o efeito conferido <strong>direto na API</strong>, não apenas na
+tela. A distinção é importante: a tela mostrar "Título cancelado" não prova que
+o título foi cancelado. Alguns exemplos do registro de validação:</p>
+
+<table>
+  <tr><th>Operação</th><th>Conferência</th></tr>
+  <tr>
+    <td>Cancelar o título <code>TESTE-FRONT-01</code></td>
+    <td><code>GET /contas-pagar</code> passou a trazer
+        <code>situacao: CANCELADA</code>, com a linha ainda na lista</td>
+  </tr>
+  <tr>
+    <td>Cancelar <code>DUP-123456</code>, que está <code>PAGA</code></td>
+    <td>a tela exibiu a recusa da API (RN11) e o título continuou
+        <code>PAGA</code></td>
+  </tr>
+  <tr>
+    <td>Inativar <code>Cliente Teste Campos SA</code></td>
+    <td><code>GET /pessoas?papel=CLIENTE</code> passou a trazer
+        <code>ativo: false</code>, sem perder os títulos</td>
+  </tr>
+  <tr>
+    <td>Excluir um banco que tem agência</td>
+    <td>409 com a mensagem do servidor, exibida na tela</td>
+  </tr>
+  <tr>
+    <td>Filtro "Só os a depositar"</td>
+    <td>com dois cheques em carteira, um vencido e um não, a lista trouxe
+        apenas o vencido</td>
+  </tr>
+</table>
+
+<p>Foi essa validação manual que encontrou os defeitos descritos em 3.5. Nenhum
+deles produzia erro: a requisição retornava 200 e a tela dizia que tinha dado
+certo. Só comparando o que a API guardou com o que o usuário via é que a perda
+de dado aparecia.</p>
+
+<div class="nota">
+<strong>Defeitos relatados ao back-end.</strong> O front-end identificou cinco
+problemas do lado do servidor durante a integração, entre eles um 409 ao editar
+título com rateio (conflito de chave única na ordem de <em>insert</em> e
+<em>delete</em> do Hibernate) e filtros de nome e papel que eram mutuamente
+exclusivos. Todos foram repassados e corrigidos, e os contornos provisórios do
+front-end foram removidos depois.
+</div>
+</section>
+
+<section>
+<h2>4. Uso de inteligência artificial</h2>
+
+<p>O enunciado exige documentar o uso de IA. Esta seção resume o que foi feito;
+o registro completo — prompts, decisões e desafios, em quinze seções — está em
+<code>frontend/docs/RELATORIO-IA.md</code>, versionado junto com o código.</p>
+
+<h3>4.1 Como a IA foi usada</h3>
+
+<p>A ferramenta foi o Claude Code, usado como par de programação ao longo de
+quinze sessões de trabalho. O padrão de uso foi sempre o mesmo: descrever o
+objetivo e as restrições, receber um plano, aprovar ou corrigir o plano, e só
+então deixar escrever código.</p>
+
+<p>As restrições dadas no início valeram para o projeto inteiro:</p>
+
+<ul>
+  <li>React, TypeScript e CSS puro; sem Tailwind e sem biblioteca de
+      componentes;</li>
+  <li><code>any</code> proibido;</li>
+  <li>o padrão Adapter como fronteira entre a tela e a API;</li>
+  <li>nada de alterar o <code>backend/</code> — o que faltasse lá seria
+      pedido ao responsável;</li>
+  <li><em>"Teste no navegador o que escrever. Não entregue código não
+      executado."</em></li>
+  <li><em>"Prefira código legível a código curto."</em></li>
+</ul>
+
+<p>As duas últimas foram as que mais mudaram o resultado, e não por acaso: são
+as que vão contra a tendência natural da ferramenta.</p>
+
+<h3>4.2 O que ela acertou</h3>
+
+<p>O ganho maior foi em trabalho repetitivo com forma bem definida: transcrever
+o contrato da API para tipos TypeScript (as 600 linhas de
+<code>src/api/tipos.ts</code>), escrever os pares de função dos adapters,
+montar a API falsa dos testes, e aplicar uma mesma correção em quatro lugares
+parecidos.</p>
+
+<p>Também foi útil como revisora. A varredura que encontrou os combos com nomes
+fixos herdados da versão em <code>localStorage</code> — opções que não
+correspondiam a conta nenhuma e dariam erro na gravação — saiu de um pedido
+explícito de revisão geral antes da entrega.</p>
+
+<h3>4.3 O que ela errou, e como os erros apareceram</h3>
+
+<p>Esta parte é a mais importante do relatório, porque descreve o que o grupo
+precisou fazer <em>além</em> de pedir.</p>
+
+<p><strong>Perda silenciosa de dados.</strong> A primeira versão do adapter de
+pessoas enviava no PUT apenas o que o formulário mostrava. Como o contrato diz
+que o PUT substitui a coleção, editar um cliente apagava o FAX, e editar quem
+era cliente e fornecedor apagava um dos papéis. O código parecia correto,
+compilava, passava nos testes que existiam e retornava 200. Só apareceu quando
+alguém comparou, registro a registro, o que a API tinha guardado com o que havia
+antes.</p>
+
+<p><strong>Uma correção pela metade.</strong> O primeiro conserto desse defeito
+lia <code>telefones[0]</code>. Funcionava nos registros de teste e falhava nos
+registros em que o FAX vinha primeiro — porque o back-end devolve um
+<code>Set</code>, sem ordem garantida. A versão correta seleciona pelo tipo.</p>
+
+<p><strong>Verificação que não verificava.</strong> Durante várias sessões, a
+checagem de tipos foi reportada como limpa quando não era. O comando usado era
+<code>npx tsc -b | head -4 &amp;&amp; echo "TYPECHECK OK"</code> — em um
+<em>pipeline</em>, o shell devolve o código de saída do último comando, que é o
+<code>head</code>, e esse sempre dá zero. Passou a ser
+<code>npx tsc -b &gt; log 2&gt;&amp;1; echo "exit=$?"</code>.</p>
+
+<p><strong>Entregas declaradas prontas com lacunas.</strong> Mais de uma vez o
+trabalho foi dado por concluído enquanto faltavam operações — telas sem o botão
+de cancelar, de inativar, de excluir, embora os endpoints já existissem no
+contrato. Foi preciso cobrar explicitamente que tudo fosse fechado antes de
+seguir. A varredura final comparou, tela a tela, a barra de botões com a lista
+de endpoints do contrato; foi assim que as cinco lacunas da última etapa
+apareceram.</p>
+
+<h3>4.4 O método que sobrou</h3>
+
+<p>Os erros acima têm uma coisa em comum: nenhum deles aparece lendo o código.
+Todos aparecem comparando o que o programa <em>diz</em> que fez com o que o
+servidor <em>guardou</em>. Daí as três práticas que acabaram valendo como
+método:</p>
+
+<ol>
+  <li><strong>Conferir o efeito, não a mensagem.</strong> Depois de cada
+      operação, consultar a API e olhar o registro. "Salvo com sucesso" não é
+      evidência de nada.</li>
+  <li><strong>Desconfiar do comando de verificação.</strong> Um comando que
+      sempre diz "OK" provavelmente não está verificando. Vale testar o
+      verificador reintroduzindo o defeito de propósito — foi o que se fez com
+      o teste do rateio, que falhou como devia antes de a correção ser
+      restaurada.</li>
+  <li><strong>Comparar com a especificação, não com a impressão.</strong> A
+      lista de endpoints do contrato, confrontada com as telas, encontrou
+      lacunas que a leitura das telas não encontrava.</li>
+</ol>
+
+<p>A conclusão honesta é que a IA acelerou bastante a escrita e quase nada a
+verificação. Os defeitos mais caros do projeto foram todos de uma espécie que a
+ferramenta não detecta sozinha — código plausível, que compila, que passa nos
+testes existentes e que está errado. O tempo economizado na digitação foi, em
+boa parte, reinvestido em conferência.</p>
+</section>
+
+<section>
+<h2>Anexo A — Como executar</h2>
+
+<p>O sistema tem duas partes, que sobem separadamente.</p>
+
+<h4>Back-end (API e banco)</h4>
+
+<pre><code>cd backend
+docker compose up -d
+mvnw.cmd spring-boot:run</code></pre>
+
+<p>A API sobe em <code>http://localhost:8080</code> e o CORS já libera as portas
+5173 e 3000.</p>
+
+<h4>Front-end</h4>
+
+<pre><code>cd frontend
+npm install
+npm run dev</code></pre>
+
+<p>Requer Node.js 22.12 ou superior. O menu inicial fica em
+<code>/#/inicio</code>.</p>
+
+<h4>Verificações</h4>
+
+<pre><code>npm test                        # 120 testes
+npm run build                   # checagem de tipos e build de produção
+node scripts/verify-assets.mjs  # confere os 163 SVGs do protótipo</code></pre>
+
+<p>Com a API fora do ar, as telas mostram um aviso com a opção de tentar de
+novo — o estado de erro é parte da interface, não uma tela branca.</p>
+</section>
+
+<section>
+<h2>Anexo B — Telas e endpoints</h2>
+
+<p>As doze telas de cadastro, o endpoint que cada uma consome e as operações
+disponíveis. Nenhuma depende de armazenamento no navegador.</p>
+
+<table>
+  <tr><th>Tela</th><th>Endpoint</th><th>Operações</th></tr>
+  <tr><td>Clientes</td><td><code>/api/pessoas?papel=CLIENTE</code></td>
+      <td>listar, buscar, incluir, editar, inativar</td></tr>
+  <tr><td>Fornecedores</td><td><code>/api/pessoas?papel=FORNECEDOR</code></td>
+      <td>listar, buscar, incluir, editar, inativar</td></tr>
+  <tr><td>Pagamentos</td><td><code>/api/contas-pagar</code></td>
+      <td>lançar, editar, quitar, cancelar, localizar</td></tr>
+  <tr><td>Recebimentos</td><td><code>/api/contas-receber</code></td>
+      <td>lançar, editar, receber, cancelar, localizar</td></tr>
+  <tr><td>Plano de Contas</td><td><code>/api/plano-contas</code></td>
+      <td>árvore, incluir, editar, excluir folha</td></tr>
+  <tr><td>Despesas</td><td><code>/api/despesas</code></td>
+      <td>incluir, editar, excluir, gerar título</td></tr>
+  <tr><td>Bancos</td><td><code>/api/bancos</code></td>
+      <td>árvore banco › agência › conta, com inclusão e exclusão em cada
+          nível</td></tr>
+  <tr><td>Cartórios</td><td><code>/api/cartorios</code></td>
+      <td>incluir, editar, excluir</td></tr>
+  <tr><td>Lançamentos</td><td><code>/api/lancamentos</code></td>
+      <td>partida dobrada, com estorno</td></tr>
+  <tr><td>Cheque Pré-Datado</td><td><code>/api/cheques</code></td>
+      <td>incluir, editar, movimentar o ciclo, excluir, filtrar os a
+          depositar</td></tr>
+  <tr><td>Remessa p/ Cartório</td><td><code>/api/remessas-cartorio</code></td>
+      <td>enviar a protesto, protestar, baixar</td></tr>
+  <tr><td>Relatórios</td><td><code>/api/relatorios</code></td>
+      <td>resumo do período, por categoria, inadimplência</td></tr>
+</table>
+
+<h3>Baixas: o que cada botão faz de verdade</h3>
+
+<p>Nos títulos, nas pessoas e nos lançamentos, o <code>DELETE</code> da API
+<strong>não apaga o registro</strong> — ele muda a situação, porque o histórico
+depende de a linha continuar existindo. Os rótulos dos botões foram escolhidos
+para dizer isso:</p>
+
+<table>
+  <tr><th>Botão</th><th>Tela</th><th>Efeito</th></tr>
+  <tr><td>Cancelar</td><td>Pagamentos, Recebimentos</td>
+      <td>situação vira <code>CANCELADA</code>, a linha fica na lista</td></tr>
+  <tr><td>Inativar</td><td>Clientes, Fornecedores</td>
+      <td>fica <code>ativo = false</code>, os títulos continuam válidos</td></tr>
+  <tr><td>Excluir</td><td>Lançamentos</td>
+      <td>vira <code>ESTORNADO</code>, o lançamento fica na lista</td></tr>
+  <tr><td>Exclusão</td><td>Plano de Contas</td>
+      <td>aí sim a categoria some, se não tiver subcontas</td></tr>
+</table>
+
+<p>Chamar os três primeiros de "Excluir" ensinaria o usuário errado. Cada janela
+de confirmação explica o que vai acontecer de fato — <em>"Ele continuará na
+lista, com a situação CANCELADA"</em>, <em>"Ele não é excluído, porque os
+títulos já lançados dependem dele"</em>.</p>
+
+<div class="nota">
+<strong>Limites conhecidos.</strong> Não há autenticação, conciliação bancária
+nem integração com instituição financeira; nenhuma ação executa pagamento de
+verdade. O endereço da API é fixo em <code>src/api/http.ts</code>, sem
+configuração por ambiente. Dos 17 capítulos de referência do livro, estão
+cobertos todos os que têm endpoint no contrato.
+</div>
+</section>
+
+</body>
+</html>

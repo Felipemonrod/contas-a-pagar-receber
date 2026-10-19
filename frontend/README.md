@@ -18,6 +18,7 @@ npm test        # testes dos fluxos e formulários
 npm run build  # compilação TypeScript e versão de produção em dist/
 npm run preview
 node scripts/verify-assets.mjs
+npm run relatorio  # gera docs/relatorio/RELATORIO.pdf
 ```
 
 ## O que está implementado
@@ -142,6 +143,8 @@ Os detalhes e as decisões estão em `docs/RELATORIO-IA.md`.
 - `src/screens/RemessasScreen.tsx`: envio a protesto, protesto e baixa.
 - `src/test-utils/apiFalsa.ts`: API em memória usada pelos testes.
 - `docs/RELATORIO-IA.md`: prompts, decisões e desafios da integração.
+- `docs/relatorio/relatorio.html`: relatório final (design, implementação,
+  integração e uso de IA); `RELATORIO.pdf` é a versão para entrega.
 - `src/styles.css`: tema, efeitos de clique e layout adaptável.
 - `src/assets.json` e `public/assets/`: vetores locais e suas dimensões originais.
 - `src/App.test.tsx`: testes de navegação, cadastro, busca, exclusão, vínculos e relatórios.
