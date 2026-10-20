@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseUrl}}/bancos/{{bancoId}}"
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));
+    language: text/javascript
+order: 5000

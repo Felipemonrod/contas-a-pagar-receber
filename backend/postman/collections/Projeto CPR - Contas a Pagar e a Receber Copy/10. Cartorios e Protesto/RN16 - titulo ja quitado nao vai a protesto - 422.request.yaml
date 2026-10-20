@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/remessas-cartorio"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "cartorioId": {{cartorioId}},
+      "contaReceberId": {{contaReceberId}},
+      "dataRemessa": "2026-03-01"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));
+    language: text/javascript
+order: 4000

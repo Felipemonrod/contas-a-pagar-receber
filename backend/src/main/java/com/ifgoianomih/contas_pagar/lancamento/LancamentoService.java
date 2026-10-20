@@ -17,7 +17,7 @@ import com.ifgoianomih.contas_pagar.shared.exception.RecursoNaoEncontradoExcepti
  * Lancamento contabil (livro, cap. 12).
  *
  * RN01 vale aqui tambem: conta consolidada agrupa outras e nao recebe
- * lancamento. RN02: credito e debito precisam ser contas diferentes.
+ * lancamento. RN14: credito e debito precisam ser contas diferentes.
  */
 @Service
 @Transactional(readOnly = true)

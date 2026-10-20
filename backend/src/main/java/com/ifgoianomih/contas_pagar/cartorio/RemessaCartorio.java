@@ -21,7 +21,7 @@ import lombok.Setter;
  * Remessa de titulo para protesto. Equivale a RemessaCartorio.db do livro
  * (cap. 5, p. 73; tela no cap. 3, p. 62).
  *
- * RN09: titulo vencido e nao recebido pode ir a protesto. A remessa
+ * RN16: titulo vencido e nao recebido pode ir a protesto. A remessa
  * guarda tres datas - envio, protesto e baixa.
  *
  * No livro o vinculo com o titulo era pelo numero, em texto. Aqui e

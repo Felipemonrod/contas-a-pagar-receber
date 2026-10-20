@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/contas-correntes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "agenciaId": {{agenciaId}},
+      "numero": "98765-4",
+      "tipo": "CORRENTE",
+      "limite": 2000.00
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('contaCorrenteId', pm.response.json().id);
+    language: text/javascript
+order: 3000

@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/cartorios"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "nome": "2. Cartorio de Protesto de Morrinhos",
+      "contato": "Helena Barbosa",
+      "telefone": "(64) 3413-1122"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('cartorioId', pm.response.json().id);
+    language: text/javascript
+order: 1000

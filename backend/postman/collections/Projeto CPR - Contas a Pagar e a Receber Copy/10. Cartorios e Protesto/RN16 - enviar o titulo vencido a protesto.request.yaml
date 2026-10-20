@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/remessas-cartorio"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "cartorioId": {{cartorioId}},
+      "contaReceberId": {{tituloProtestoId}},
+      "dataRemessa": "2026-03-01",
+      "observacao": "Cliente nao atendeu as cobrancas"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('remessaId', pm.response.json().id);
+    language: text/javascript
+order: 3000

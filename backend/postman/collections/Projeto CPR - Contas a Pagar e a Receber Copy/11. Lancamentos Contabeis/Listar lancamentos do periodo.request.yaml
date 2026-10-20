@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/lancamentos?de=2026-01-01&ate=2026-12-31"
+method: GET
+queryParams:
+  de: 2026-01-01
+  ate: 2026-12-31
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 4000

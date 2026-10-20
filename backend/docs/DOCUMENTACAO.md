@@ -50,8 +50,15 @@ As regras foram extraídas do capítulo 3 do livro (O Manual do Sistema). A colu
 | **RN11** | Títulos com pagamento registrado não podem ser alterados nem cancelados. | extensão |
 | **RN12** | A soma do rateio entre categorias deve ser igual ao valor do título. | extensão |
 | **RN13** | Pessoas não são excluídas fisicamente, apenas inativadas, porque o histórico de títulos depende delas. | extensão |
+| **RN14** | Todo lançamento contábil tem uma conta de crédito e uma de débito — partida dobrada. As duas precisam ser diferentes e nenhuma delas pode ser consolidada. Lançamento não se apaga: estorna-se. | p. 75 |
+| **RN15** | O cheque pré-datado é um recebimento com data de depósito posterior à emissão, vinculado ao cliente e à conta corrente (banco e agência). Só quem tem o papel de cliente emite cheque; depois de movimentado, o cheque não é mais alterado nem excluído. | p. 61–62, 77 |
+| **RN16** | O título enviado a cartório precisa estar vencido e ainda não recebido, e o cartório precisa estar cadastrado antes. A remessa guarda as datas de envio, protesto e baixa. | p. 62–63 |
 
 As regras marcadas como "extensão" não existem no livro e foram acrescentadas pela equipe. Estão documentadas separadamente no item 17.
+
+A numeração acima é a única em vigor. Ela é a mesma usada nos comentários do código e das migrations — RN14, RN15 e RN16 foram criadas justamente para não reaproveitar números já ocupados por RN02, RN08 e RN09.
+
+Em RN15 e RN16 o livro define a estrutura dos dados (`ChequePre.db` e `Cartorio.db`, p. 77) e as telas, mas não o ciclo de vida. O ciclo do cheque (em carteira, depositado, compensado, devolvido) e a exigência de que o título esteja vencido para ir a protesto são extensões da equipe, pela mesma razão que levou a criar a situação da conta: o original derivava esses estados das datas preenchidas na tela.
 
 ---
 
@@ -178,7 +185,7 @@ A aplicação é **um único processo**, com **uma única base de dados** e **um
 
 ## 11. Descrição das APIs
 
-A documentação executável é a **coleção do Postman** em [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_collection.json): 32 requisições organizadas por domínio, com exemplos de corpo preenchidos e verificação automática da resposta. No Postman, *View Documentation* gera a página navegável da API.
+A documentação executável é a **coleção do Postman** em [`docs/Projeto-CPR.postman_collection.json`](Projeto-CPR.postman_collection.json): 58 requisições organizadas por domínio, com exemplos de corpo preenchidos e verificação automática da resposta. No Postman, *View Documentation* gera a página navegável da API.
 
 **Convenções adotadas:**
 
@@ -254,7 +261,7 @@ Resumo: `docker compose up -d` e depois `./mvnw spring-boot:run`. O Flyway cria 
 
 ### Testes automatizados em JUnit
 
-**68 testes**, executados pelo build com `mvnw test`. Rodam em **H2 em memória**, sem depender do MySQL estar no ar.
+**85 testes**, executados pelo build com `mvnw test`. Rodam em **H2 em memória**, sem depender do MySQL estar no ar.
 
 | Classe | Testes | O que verifica |
 |---|---|---|
@@ -264,6 +271,9 @@ Resumo: `docker compose up -d` e depois `./mvnw spring-boot:run`. O Flyway cria 
 | `ContaPagarTest` | 7 | Saldo, desconto disponível, condição de quitado, e a RN10 em quitação parcelada |
 | `ContaPagarServiceTest` | 20 | Regras de lançamento e quitação com repositórios simulados (Mockito): RN01, RN04, RN07, RN09, RN11, RN12 |
 | `ContaPagarIntegracaoTest` | 19 | Fluxo completo pela API, do controller ao banco |
+| `AlteracaoTituloTest` | 7 | Alteração do título: reconciliação do rateio, troca de fornecedor, número e tipo, e a RN04 na alteração |
+| `PessoaConsultaTest` | 5 | Consulta de pessoas combinando nome e papel, e a ordem de telefones e endereços |
+| `DadosComerciaisFornecedorTest` | 5 | Condição de pagamento, desconto negociado, prazo de entrega e vendedor |
 | `ContasPagarApplicationTests` | 1 | Carga do contexto |
 
 **O teste de integração** sobe o contexto inteiro e exercita o fluxo em ordem: cadastrar fornecedor e cliente, consultar o plano de contas, tentar as operações que devem falhar, lançar o título com rateio, simular nas três faixas de data, pagar parcialmente, quitar o restante e conferir que o desconto não se repetiu. Passa por controller, service, repositório, JPA e banco.

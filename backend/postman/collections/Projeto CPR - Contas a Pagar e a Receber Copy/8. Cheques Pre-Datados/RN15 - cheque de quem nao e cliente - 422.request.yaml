@@ -1,0 +1,25 @@
+$kind: http-request
+url: "{{baseUrl}}/cheques"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "numeroCheque": "000452",
+      "pessoaId": {{fornecedorId}},
+      "contaCorrenteId": {{contaCorrenteId}},
+      "emissao": "2026-10-01",
+      "deposito": "2026-11-15",
+      "valor": 100.00
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));
+      pm.test('a mensagem explica o motivo', () => {
+        pm.expect(pm.response.text()).to.include('cliente');
+      });
+    language: text/javascript
+order: 2000

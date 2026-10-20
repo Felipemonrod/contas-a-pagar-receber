@@ -2,7 +2,7 @@
 -- Cartorios e remessa de titulos para protesto
 -- (livro, cap. 10 e 17; estruturas no cap. 5, p. 73 e 77)
 --
--- RN09: titulo vencido e nao recebido pode ser enviado a protesto. A
+-- RN16: titulo vencido e nao recebido pode ser enviado a protesto. A
 -- remessa guarda tres datas - envio, protesto e baixa - e o cartorio
 -- precisa estar cadastrado antes.
 --

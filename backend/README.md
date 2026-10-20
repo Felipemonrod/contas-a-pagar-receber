@@ -146,7 +146,7 @@ docker compose down -v && docker compose up -d
 | `GET` | `/api/relatorios/resumo` | Posição financeira do período |
 | `GET` | `/api/relatorios/inadimplencia` | Títulos vencidos em aberto |
 
-A lista completa das 23 rotas está na coleção do Postman.
+A lista completa das 78 rotas está na coleção do Postman.
 
 ---
 
@@ -179,7 +179,6 @@ A organização é **por domínio, e não por camada**. Cada pasta de primeiro n
 
 | Objetivo | Comando |
 |---|---|
-| Testar a API (Windows) | `testar.bat` |
 | Compilar | `./mvnw clean compile` |
 | Empacotar | `./mvnw clean package` |
 | Executar os testes | `./mvnw test` |
@@ -194,8 +193,7 @@ A organização é **por domínio, e não por camada**. Cada pasta de primeiro n
 - [docs/PADROES-DE-PROJETO.md](docs/PADROES-DE-PROJETO.md) — padrões utilizados, com justificativa
 - [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) — descrição do problema, regras de negócio, requisitos e arquitetura
 - [docs/DIAGRAMAS.md](docs/DIAGRAMAS.md) — os seis diagramas exigidos: classes, componentes, pacotes, casos de uso, sequência e DER
-- [docs/Projeto-CPR.postman_collection.json](docs/Projeto-CPR.postman_collection.json) — coleção do Postman: 32 requisições em ordem de execução, com verificação automática de cada resposta
-- `testar.bat` — bateria de 38 verificações pelo prompt do Windows, usando apenas `curl` (requer a aplicação no ar)
+- [docs/Projeto-CPR.postman_collection.json](docs/Projeto-CPR.postman_collection.json) — coleção do Postman: 58 requisições em ordem de execução, com verificação automática de cada resposta
 
 ---
 

@@ -109,7 +109,7 @@ public class CartorioService {
     }
 
     /**
-     * RN09: so vai a protesto titulo vencido e ainda nao recebido.
+     * RN16: so vai a protesto titulo vencido e ainda nao recebido.
      * Enviar um titulo ja quitado ou ainda a vencer nao faz sentido.
      */
     @Transactional

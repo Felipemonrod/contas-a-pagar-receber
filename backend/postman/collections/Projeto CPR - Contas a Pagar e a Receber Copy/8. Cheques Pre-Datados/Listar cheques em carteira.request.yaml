@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseUrl}}/cheques?situacao=EM_CARTEIRA"
+method: GET
+queryParams:
+  situacao: EM_CARTEIRA
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 4000

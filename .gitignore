@@ -3,11 +3,11 @@ backend/target/
 frontend/dist/
 frontend/node_modules/
 
-# Postman: configuracao local da instalacao, nao do projeto
+# Postman: so a configuracao local da instalacao.
+# A colecao em si (backend/postman/collections) fica versionada - e dela
+# que sai o docs/Projeto-CPR.postman_collection.json entregue.
 .postman/
-postman/
 backend/.postman/
-backend/postman/
 
 # IDE
 .idea/

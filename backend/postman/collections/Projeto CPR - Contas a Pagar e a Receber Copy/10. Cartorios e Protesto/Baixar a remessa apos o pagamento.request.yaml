@@ -1,0 +1,18 @@
+$kind: http-request
+url: "{{baseUrl}}/remessas-cartorio/{{remessaId}}/baixa"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "dataBaixa": "2026-03-20",
+      "observacao": "Titulo quitado pelo cliente"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 6000

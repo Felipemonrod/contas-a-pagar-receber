@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/remessas-cartorio/{{remessaId}}/protesto"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "dataProtesto": "2026-03-10"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 5000

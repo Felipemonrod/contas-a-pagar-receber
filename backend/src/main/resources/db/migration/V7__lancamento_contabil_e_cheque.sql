@@ -2,10 +2,10 @@
 -- Lancamento contabil e cheque pre-datado
 -- (livro, cap. 12 e 16; estruturas no cap. 5, p. 75 e 77)
 --
--- RN02: todo lancamento tem uma conta de credito e uma de debito, valor,
+-- RN14: todo lancamento tem uma conta de credito e uma de debito, valor,
 -- data e status - partida dobrada, refletindo ativo e passivo.
 --
--- RN08: o cheque pre-datado e um recebimento com data de deposito
+-- RN15: o cheque pre-datado e um recebimento com data de deposito
 -- futura, vinculado a cliente, banco, agencia e conta corrente.
 -- Funciona como garantia.
 -- =====================================================================

@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/lancamentos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "contaDebitoId": 1,
+      "contaCreditoId": 5,
+      "valor": 100.00,
+      "descricao": "Conta consolidada nao aceita lancamento",
+      "data": "2026-10-10"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));
+    language: text/javascript
+order: 3000

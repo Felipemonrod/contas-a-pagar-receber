@@ -25,7 +25,7 @@ import lombok.Setter;
  * Cheque pre-datado. Equivale a ChequePre.db do livro (cap. 5, p. 77;
  * tela no cap. 3, p. 61).
  *
- * RN08: recebimento com data de deposito futura, vinculado a cliente,
+ * RN15: recebimento com data de deposito futura, vinculado a cliente,
  * banco, agencia e conta corrente. Funciona como garantia.
  *
  * No livro, banco, agencia e conta eram tres campos soltos. Aqui aponta

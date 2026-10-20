@@ -22,7 +22,7 @@ import lombok.Setter;
  * Lancamento contabil por partida dobrada. Equivale a Lancamento.db do
  * livro (cap. 5, p. 75; tela no cap. 3, p. 50).
  *
- * RN02: todo lancamento tem uma conta de credito e uma de debito, valor,
+ * RN14: todo lancamento tem uma conta de credito e uma de debito, valor,
  * data e status, refletindo ativo e passivo.
  *
  * Conceito contabil: toda movimentacao sai de algum lugar e entra em

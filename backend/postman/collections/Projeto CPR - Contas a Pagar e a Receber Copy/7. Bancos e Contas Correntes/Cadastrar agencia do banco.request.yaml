@@ -1,0 +1,23 @@
+$kind: http-request
+url: "{{baseUrl}}/agencias"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "bancoId": {{bancoId}},
+      "numero": "0471",
+      "nome": "Agencia Morrinhos",
+      "endereco": "Av. Brasil, 500",
+      "gerente": "Marcos Teixeira",
+      "telefone": "(64) 3413-0000"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('agenciaId', pm.response.json().id);
+    language: text/javascript
+order: 2000

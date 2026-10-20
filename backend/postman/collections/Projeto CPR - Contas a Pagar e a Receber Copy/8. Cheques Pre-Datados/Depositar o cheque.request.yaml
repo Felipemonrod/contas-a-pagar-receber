@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseUrl}}/cheques/{{chequeId}}/situacao"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "situacao": "DEPOSITADO",
+      "observacao": "Enviado ao banco"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('situacao mudou para DEPOSITADO', () => {
+        pm.expect(pm.response.json().situacao).to.eql('DEPOSITADO');
+      });
+    language: text/javascript
+order: 6000

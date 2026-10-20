@@ -1,0 +1,27 @@
+$kind: http-request
+url: "{{baseUrl}}/contas-receber"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "numeroTitulo": "NF-900001",
+      "pessoaId": {{clienteId}},
+      "tipoTitulo": "DUPLICATA",
+      "valor": 1200.00,
+      "emissao": "2026-01-10",
+      "vencimento": "2026-02-10",
+      "acrescimoDia": 4.00,
+      "rateios": [
+        { "planoContaId": 7, "valor": 1200.00 }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('tituloProtestoId', pm.response.json().id);
+    language: text/javascript
+order: 2000

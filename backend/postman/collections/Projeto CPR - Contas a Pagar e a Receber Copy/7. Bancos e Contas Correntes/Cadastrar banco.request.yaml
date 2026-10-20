@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/bancos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "codigo": "237",
+      "nome": "Banco Bradesco S/A"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('bancoId', pm.response.json().id);
+    language: text/javascript
+order: 1000

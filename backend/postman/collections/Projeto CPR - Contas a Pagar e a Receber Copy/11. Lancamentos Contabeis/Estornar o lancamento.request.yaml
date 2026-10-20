@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{baseUrl}}/lancamentos/{{lancamentoId}}"
+method: DELETE
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('o lancamento fica marcado como ESTORNADO', () => {
+        pm.expect(pm.response.json().status).to.eql('ESTORNADO');
+      });
+    language: text/javascript
+order: 6000

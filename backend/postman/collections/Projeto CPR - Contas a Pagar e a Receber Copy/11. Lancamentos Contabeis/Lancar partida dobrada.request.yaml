@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/lancamentos"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "contaDebitoId": 10,
+      "contaCreditoId": 5,
+      "valor": 350.00,
+      "descricao": "Pagamento da conta de energia eletrica",
+      "data": "2026-10-10"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('lancamentoId', pm.response.json().id);
+    language: text/javascript
+order: 1000

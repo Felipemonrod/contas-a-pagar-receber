@@ -22,7 +22,7 @@ import com.ifgoianomih.contas_pagar.shared.exception.RecursoNaoEncontradoExcepti
 /**
  * Cheque pre-datado (livro, cap. 16).
  *
- * RN08: e um recebimento com data de deposito futura, vinculado a
+ * RN15: e um recebimento com data de deposito futura, vinculado a
  * cliente, banco, agencia e conta corrente, e funciona como garantia.
  */
 @Service

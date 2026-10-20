@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/cheques"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "numeroCheque": "000451",
+      "pessoaId": {{clienteId}},
+      "contaCorrenteId": {{contaCorrenteId}},
+      "emissao": "2026-10-01",
+      "deposito": "2026-11-15",
+      "valor": 480.00,
+      "contaReceberId": {{contaReceberId}},
+      "descricao": "Garantia do titulo a receber"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('201 Created', () => pm.response.to.have.status(201));
+      pm.collectionVariables.set('chequeId', pm.response.json().id);
+      pm.test('entra em carteira', () => {
+        pm.expect(pm.response.json().situacao).to.eql('EM_CARTEIRA');
+      });
+    language: text/javascript
+order: 1000

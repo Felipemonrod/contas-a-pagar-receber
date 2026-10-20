@@ -72,5 +72,26 @@ id  nome                  documento           logradouro         cidade     uf  
 ## Colecao do Postman
 
 [`docs/Projeto-CPR.postman_collection.json`](../Projeto-CPR.postman_collection.json):
-32 requisicoes em ordem de execucao, com verificacao automatica da resposta e
-uma pasta dedicada aos cenarios que devem ser recusados.
+58 requisicoes em 11 pastas, em ordem de execucao, com verificacao automatica da
+resposta e uma pasta dedicada aos cenarios que devem ser recusados.
+
+Executada contra o banco recriado do zero:
+
+```
+1. Plano de Contas                        3 requisicoes   OK
+2. Pessoas                                5 requisicoes   OK
+3. Contas a Pagar                         7 requisicoes   OK
+4. Contas a Receber                       3 requisicoes   OK
+5. Despesas (RN03)                        3 requisicoes   OK
+6. Relatorios                             3 requisicoes   OK
+7. Bancos e Contas Correntes              5 requisicoes   OK
+8. Cheques Pre-Datados                    8 requisicoes   OK
+10. Cartorios e Protesto                  7 requisicoes   OK
+11. Lancamentos Contabeis                 6 requisicoes   OK
+9. Cenarios de Erro                       8 requisicoes   OK
+
+58 requisicoes executadas, 0 com problema
+```
+
+As 15 recusas esperadas (422, 400 e 404) sao verificadas pelo proprio script de
+cada requisicao: a requisicao so passa se o status for exatamente o previsto.

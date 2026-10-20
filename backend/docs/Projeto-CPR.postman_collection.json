@@ -1,0 +1,2356 @@
+{
+  "info": {
+    "name": "Projeto CPR - Contas a Pagar e a Receber",
+    "description": "Colecao de testes da API do Projeto Integrador de Sistemas Distribuidos (IF Goiano - Morrinhos).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Plano de Contas",
+      "item": [
+        {
+          "name": "Listar arvore completa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plano-contas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plano-contas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar somente analiticas (aceitam lancamento)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plano-contas/analiticas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plano-contas",
+                "analiticas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar conta analitica sob conta consolidada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plano-contas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plano-contas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"21.07\",\n  \"descricao\": \"Internet e Links\",\n  \"codigoSuperior\": \"21\",\n  \"consolidada\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Pessoas",
+      "item": [
+        {
+          "name": "Cadastrar fornecedor e cliente (N-N de papeis)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pessoas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Greensoft Informatica Ltda\",\n  \"documento\": \"33.537.659/0007-11\",\n  \"papeis\": [\"FORNECEDOR\", \"CLIENTE\"],\n  \"email\": \"contato@greensoft.com.br\",\n  \"contato\": \"Wilson\",\n  \"telefones\": [\n    { \"numero\": \"(11) 5585-4975\", \"ramal\": \"201\", \"tipo\": \"COMERCIAL\" },\n    { \"numero\": \"(11) 5584-2545\", \"tipo\": \"FAX\" }\n  ],\n  \"enderecos\": [\n    {\n      \"logradouro\": \"Av. Paulista\",\n      \"numero\": \"1439\",\n      \"bairro\": \"Bela Vista\",\n      \"cep\": \"01311-200\",\n      \"cidade\": \"Sao Paulo\",\n      \"uf\": \"SP\",\n      \"principal\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('pessoaId', pm.response.json().id);",
+                  "pm.test('tem os dois papeis', () => {",
+                  "  pm.expect(pm.response.json().papeis).to.include.members(['FORNECEDOR','CLIENTE']);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar cliente puro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pessoas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente Puro SA\",\n  \"documento\": \"22.222.222/0001-22\",\n  \"papeis\": [\"CLIENTE\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('clienteId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar fornecedor puro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/pessoas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fornecedor Puro Ltda\",\n  \"documento\": \"11.111.111/0001-11\",\n  \"papeis\": [\"FORNECEDOR\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('fornecedorId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar somente fornecedores",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pessoas?papel=FORNECEDOR",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoas"
+              ],
+              "query": [
+                {
+                  "key": "papel",
+                  "value": "FORNECEDOR"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalhar pessoa",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pessoas/{{pessoaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoas",
+                "{{pessoaId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Contas a Pagar",
+      "item": [
+        {
+          "name": "Lancar titulo com rateio entre categorias",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"DUP-123456\",\n  \"pessoaId\": {{pessoaId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 1000.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-10\",\n  \"desconto\": 50.00,\n  \"validadeDesconto\": \"2026-10-05\",\n  \"acrescimoDia\": 2.00,\n  \"rateios\": [\n    { \"planoContaId\": 10, \"valor\": 600.00 },\n    { \"planoContaId\": 13, \"valor\": 400.00 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('contaPagarId', pm.response.json().id);",
+                  "pm.test('situacao inicial ABERTA', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('ABERTA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simular DENTRO da validade do desconto (RN05)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/simulacao?data=2026-10-03",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "simulacao"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "2026-10-03"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('desconto aplicado', () => {",
+                  "  pm.expect(Number(pm.response.json().descontoAplicado)).to.eql(50);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simular APOS a validade, antes do vencimento",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/simulacao?data=2026-10-08",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "simulacao"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "2026-10-08"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Simular APOS o vencimento (juros por atraso)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/simulacao?data=2026-10-25",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "simulacao"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "2026-10-25"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('juros de 15 dias x 2,00 = 30,00', () => {",
+                  "  pm.expect(Number(pm.response.json().acrescimoAplicado)).to.eql(30);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pagamento PARCIAL de 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/pagamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "pagamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataPagamento\": \"2026-10-03\",\n  \"formaPagamento\": \"PIX\",\n  \"valorPago\": 400.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('situacao vira PARCIAL', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('PARCIAL');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Quitar o restante (valor calculado pelo sistema)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/pagamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "pagamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataPagamento\": \"2026-10-03\",\n  \"formaPagamento\": \"BOLETO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('situacao vira PAGA', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('PAGA');",
+                  "});",
+                  "pm.test('saldo zerado', () => {",
+                  "  pm.expect(Number(pm.response.json().saldoDevedor)).to.eql(0);",
+                  "});",
+                  "pm.test('desconto concedido uma unica vez (RN10)', () => {",
+                  "  const total = pm.response.json().pagamentos",
+                  "    .reduce((s, p) => s + Number(p.descontoAplicado), 0);",
+                  "  pm.expect(total).to.eql(50);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Consultar por periodo e situacao",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar?situacao=ABERTA&de=2026-09-01&ate=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ],
+              "query": [
+                {
+                  "key": "situacao",
+                  "value": "ABERTA"
+                },
+                {
+                  "key": "de",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "ate",
+                  "value": "2026-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Contas a Receber",
+      "item": [
+        {
+          "name": "Lancar titulo a receber",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-receber",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-receber"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"NF-123456\",\n  \"pessoaId\": {{pessoaId}},\n  \"tipoTitulo\": \"NOTA_PROMISSORIA\",\n  \"valor\": 800.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-20\",\n  \"desconto\": 40.00,\n  \"validadeDesconto\": \"2026-10-15\",\n  \"acrescimoDia\": 3.00,\n  \"rateios\": [\n    { \"planoContaId\": 7, \"valor\": 800.00 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('contaReceberId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Simular recebimento com desconto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-receber/{{contaReceberId}}/simulacao?data=2026-10-10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-receber",
+                "{{contaReceberId}}",
+                "simulacao"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "2026-10-10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar recebimento integral",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-receber/{{contaReceberId}}/recebimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-receber",
+                "{{contaReceberId}}",
+                "recebimento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataRecebimento\": \"2026-10-10\",\n  \"formaPagamento\": \"PIX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('situacao vira RECEBIDA', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('RECEBIDA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Despesas (RN03)",
+      "item": [
+        {
+          "name": "Cadastrar despesa PREVISTA",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/despesas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "despesas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planoContaId\": 10,\n  \"descricao\": \"Conta de Luz - dezembro\",\n  \"valorPrevisto\": 150.00,\n  \"previsaoPagamento\": \"2026-12-12\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('despesaId', pm.response.json().id);",
+                  "pm.test('ainda nao realizada', () => {",
+                  "  pm.expect(pm.response.json().realizada).to.eql(false);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "A fatura chegou- gerar titulo com o valor REAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/despesas/{{despesaId}}/gerar-titulo",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "despesas",
+                "{{despesaId}}",
+                "gerar-titulo"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"ENEL-778899\",\n  \"pessoaId\": {{pessoaId}},\n  \"valor\": 187.45,\n  \"emissao\": \"2026-12-01\",\n  \"vencimento\": \"2026-12-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('despesa virou titulo', () => {",
+                  "  pm.expect(pm.response.json().realizada).to.eql(true);",
+                  "  pm.expect(pm.response.json().numeroTitulo).to.eql('ENEL-778899');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar despesas ainda nao realizadas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/despesas?previstas=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "despesas"
+              ],
+              "query": [
+                {
+                  "key": "previstas",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Relatorios",
+      "item": [
+        {
+          "name": "Resumo financeiro do periodo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relatorios/resumo?de=2026-09-01&ate=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relatorios",
+                "resumo"
+              ],
+              "query": [
+                {
+                  "key": "de",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "ate",
+                  "value": "2026-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Totais por categoria",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relatorios/por-categoria?de=2026-09-01&ate=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relatorios",
+                "por-categoria"
+              ],
+              "query": [
+                {
+                  "key": "de",
+                  "value": "2026-09-01"
+                },
+                {
+                  "key": "ate",
+                  "value": "2026-12-31"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inadimplencia",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/relatorios/inadimplencia",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relatorios",
+                "inadimplencia"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Bancos e Contas Correntes",
+      "item": [
+        {
+          "name": "Cadastrar banco",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/bancos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bancos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"237\",\n  \"nome\": \"Banco Bradesco S/A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('bancoId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar agencia do banco",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/agencias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "agencias"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bancoId\": {{bancoId}},\n  \"numero\": \"0471\",\n  \"nome\": \"Agencia Morrinhos\",\n  \"endereco\": \"Av. Brasil, 500\",\n  \"gerente\": \"Marcos Teixeira\",\n  \"telefone\": \"(64) 3413-0000\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('agenciaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cadastrar conta corrente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-correntes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-correntes"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"agenciaId\": {{agenciaId}},\n  \"numero\": \"98765-4\",\n  \"tipo\": \"CORRENTE\",\n  \"limite\": 2000.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('contaCorrenteId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar bancos com agencias e contas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bancos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bancos"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('o banco cadastrado traz a agencia junto', () => {",
+                  "  const banco = pm.response.json()",
+                  "    .find(b => b.id === pm.collectionVariables.get('bancoId'));",
+                  "  pm.expect(banco.agencias.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Excluir banco que possui agencia - 422",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/bancos/{{bancoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "bancos",
+                "{{bancoId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "8. Cheques Pre-Datados",
+      "item": [
+        {
+          "name": "Cadastrar cheque pre-datado do cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCheque\": \"000451\",\n  \"pessoaId\": {{clienteId}},\n  \"contaCorrenteId\": {{contaCorrenteId}},\n  \"emissao\": \"2026-10-01\",\n  \"deposito\": \"2026-11-15\",\n  \"valor\": 480.00,\n  \"contaReceberId\": {{contaReceberId}},\n  \"descricao\": \"Garantia do titulo a receber\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('chequeId', pm.response.json().id);",
+                  "pm.test('entra em carteira', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('EM_CARTEIRA');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN15 - cheque de quem nao e cliente - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCheque\": \"000452\",\n  \"pessoaId\": {{fornecedorId}},\n  \"contaCorrenteId\": {{contaCorrenteId}},\n  \"emissao\": \"2026-10-01\",\n  \"deposito\": \"2026-11-15\",\n  \"valor\": 100.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));",
+                  "pm.test('a mensagem explica o motivo', () => {",
+                  "  pm.expect(pm.response.text()).to.include('cliente');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deposito anterior a emissao - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCheque\": \"000453\",\n  \"pessoaId\": {{clienteId}},\n  \"contaCorrenteId\": {{contaCorrenteId}},\n  \"emissao\": \"2026-10-01\",\n  \"deposito\": \"2026-09-20\",\n  \"valor\": 100.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar cheques em carteira",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cheques?situacao=EM_CARTEIRA",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques"
+              ],
+              "query": [
+                {
+                  "key": "situacao",
+                  "value": "EM_CARTEIRA"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cheques cuja data de deposito ja chegou",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cheques/a-depositar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques",
+                "a-depositar"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Depositar o cheque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques/{{chequeId}}/situacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques",
+                "{{chequeId}}",
+                "situacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"situacao\": \"DEPOSITADO\",\n  \"observacao\": \"Enviado ao banco\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('situacao mudou para DEPOSITADO', () => {",
+                  "  pm.expect(pm.response.json().situacao).to.eql('DEPOSITADO');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Compensar o cheque",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques/{{chequeId}}/situacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques",
+                "{{chequeId}}",
+                "situacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"situacao\": \"COMPENSADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cheque compensado nao muda mais - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cheques/{{chequeId}}/situacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cheques",
+                "{{chequeId}}",
+                "situacao"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"situacao\": \"DEVOLVIDO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Cartorios e Protesto",
+      "item": [
+        {
+          "name": "Cadastrar cartorio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/cartorios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cartorios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"2. Cartorio de Protesto de Morrinhos\",\n  \"contato\": \"Helena Barbosa\",\n  \"telefone\": \"(64) 3413-1122\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('cartorioId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Lancar titulo VENCIDO para protestar",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-receber",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-receber"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"NF-900001\",\n  \"pessoaId\": {{clienteId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 1200.00,\n  \"emissao\": \"2026-01-10\",\n  \"vencimento\": \"2026-02-10\",\n  \"acrescimoDia\": 4.00,\n  \"rateios\": [\n    { \"planoContaId\": 7, \"valor\": 1200.00 }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('tituloProtestoId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN16 - enviar o titulo vencido a protesto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/remessas-cartorio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "remessas-cartorio"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartorioId\": {{cartorioId}},\n  \"contaReceberId\": {{tituloProtestoId}},\n  \"dataRemessa\": \"2026-03-01\",\n  \"observacao\": \"Cliente nao atendeu as cobrancas\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('remessaId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN16 - titulo ja quitado nao vai a protesto - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/remessas-cartorio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "remessas-cartorio"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cartorioId\": {{cartorioId}},\n  \"contaReceberId\": {{contaReceberId}},\n  \"dataRemessa\": \"2026-03-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registrar o protesto confirmado pelo cartorio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/remessas-cartorio/{{remessaId}}/protesto",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "remessas-cartorio",
+                "{{remessaId}}",
+                "protesto"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataProtesto\": \"2026-03-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Baixar a remessa apos o pagamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/remessas-cartorio/{{remessaId}}/baixa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "remessas-cartorio",
+                "{{remessaId}}",
+                "baixa"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataBaixa\": \"2026-03-20\",\n  \"observacao\": \"Titulo quitado pelo cliente\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar remessas em aberto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/remessas-cartorio?emAberto=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "remessas-cartorio"
+              ],
+              "query": [
+                {
+                  "key": "emAberto",
+                  "value": "true"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "11. Lancamentos Contabeis",
+      "item": [
+        {
+          "name": "Lancar partida dobrada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contaDebitoId\": 10,\n  \"contaCreditoId\": 5,\n  \"valor\": 350.00,\n  \"descricao\": \"Pagamento da conta de energia eletrica\",\n  \"data\": \"2026-10-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('lancamentoId', pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN14 - debito e credito na mesma conta - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contaDebitoId\": 10,\n  \"contaCreditoId\": 10,\n  \"valor\": 100.00,\n  \"descricao\": \"Lancamento incoerente\",\n  \"data\": \"2026-10-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN01 - lancamento em conta consolidada - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contaDebitoId\": 1,\n  \"contaCreditoId\": 5,\n  \"valor\": 100.00,\n  \"descricao\": \"Conta consolidada nao aceita lancamento\",\n  \"data\": \"2026-10-10\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 Unprocessable Entity', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar lancamentos do periodo",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos?de=2026-01-01&ate=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos"
+              ],
+              "query": [
+                {
+                  "key": "de",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "ate",
+                  "value": "2026-12-31"
+                }
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Razao de uma conta do plano",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos/por-conta/10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos",
+                "por-conta",
+                "10"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estornar o lancamento",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/lancamentos/{{lancamentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "lancamentos",
+                "{{lancamentoId}}"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('o lancamento fica marcado como ESTORNADO', () => {",
+                  "  pm.expect(pm.response.json().status).to.eql('ESTORNADO');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "9. Cenarios de Erro (evidencias das regras)",
+      "item": [
+        {
+          "name": "RN01 - rateio em categoria consolidada - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"ERR-001\",\n  \"pessoaId\": {{pessoaId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 100.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-01\",\n  \"rateios\": [{ \"planoContaId\": 4, \"valor\": 100.00 }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN12 - rateio nao fecha com o valor - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"ERR-002\",\n  \"pessoaId\": {{pessoaId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 100.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-01\",\n  \"rateios\": [{ \"planoContaId\": 10, \"valor\": 70.00 }]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN04 - conta a receber para quem nao e cliente - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-receber",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-receber"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"ERR-003\",\n  \"pessoaId\": {{fornecedorId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 500.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));",
+                  "pm.test('a mensagem explica a regra', () => {",
+                  "  pm.expect(pm.response.json().mensagem).to.include('cliente');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN04 - conta a pagar para quem nao e fornecedor - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroTitulo\": \"ERR-004\",\n  \"pessoaId\": {{clienteId}},\n  \"tipoTitulo\": \"DUPLICATA\",\n  \"valor\": 500.00,\n  \"emissao\": \"2026-09-01\",\n  \"vencimento\": \"2026-10-15\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));",
+                  "pm.test('a mensagem explica a regra', () => {",
+                  "  pm.expect(pm.response.json().mensagem).to.include('fornecedor');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN07 - quitar titulo ja quitado - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/{{contaPagarId}}/pagamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "{{contaPagarId}}",
+                "pagamento"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"dataPagamento\": \"2026-10-03\",\n  \"formaPagamento\": \"PIX\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "RN02 - subconta sob conta analitica - 422",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plano-contas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plano-contas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"11.01.01\",\n  \"descricao\": \"Caixa Pequeno\",\n  \"codigoSuperior\": \"11.01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validacao - campos obrigatorios ausentes - 400",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": -5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400', () => pm.response.to.have.status(400));",
+                  "pm.test('lista os campos invalidos', () => {",
+                  "  pm.expect(pm.response.json().campos.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Recurso inexistente - 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/contas-pagar/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "contas-pagar",
+                "999999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404', () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api"
+    },
+    {
+      "key": "pessoaId",
+      "value": ""
+    },
+    {
+      "key": "clienteId",
+      "value": ""
+    },
+    {
+      "key": "fornecedorId",
+      "value": ""
+    },
+    {
+      "key": "contaPagarId",
+      "value": ""
+    },
+    {
+      "key": "contaReceberId",
+      "value": ""
+    },
+    {
+      "key": "despesaId",
+      "value": ""
+    },
+    {
+      "key": "bancoId",
+      "value": ""
+    },
+    {
+      "key": "agenciaId",
+      "value": ""
+    },
+    {
+      "key": "contaCorrenteId",
+      "value": ""
+    },
+    {
+      "key": "chequeId",
+      "value": ""
+    },
+    {
+      "key": "cartorioId",
+      "value": ""
+    },
+    {
+      "key": "tituloProtestoId",
+      "value": ""
+    },
+    {
+      "key": "remessaId",
+      "value": ""
+    },
+    {
+      "key": "lancamentoId",
+      "value": ""
+    }
+  ]
+}

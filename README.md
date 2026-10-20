@@ -37,6 +37,17 @@ Sobe em `http://localhost:5173`. O CORS do back-end já está liberado para essa
 
 > Os dois precisam estar no ar para as telas integradas funcionarem.
 
+### 3. Testar a API pelo Postman
+
+Importe [`backend/docs/Projeto-CPR.postman_collection.json`](backend/docs/Projeto-CPR.postman_collection.json) e use o *Run collection*. São 58 requisições em ordem de execução, cada uma verificando o próprio retorno. As pastas são independentes entre si, mas a ordem importa dentro de cada uma: a primeira requisição guarda o id que as seguintes usam.
+
+Com o banco recém-criado as 58 passam. Para repetir a execução do zero:
+
+```bash
+cd backend
+docker compose down -v && docker compose up -d
+```
+
 ---
 
 ## Documentação
@@ -44,6 +55,7 @@ Sobe em `http://localhost:5173`. O CORS do back-end já está liberado para essa
 | Documento | Conteúdo |
 |---|---|
 | [backend/docs/CONTRATO-API.md](backend/docs/CONTRATO-API.md) | **Contrato da API** — endpoints, exemplos reais, regras de negócio |
+| [backend/docs/Projeto-CPR.postman_collection.json](backend/docs/Projeto-CPR.postman_collection.json) | Coleção do Postman — 58 requisições prontas para executar |
 | [backend/docs/DOCUMENTACAO.md](backend/docs/DOCUMENTACAO.md) | Problema, regras, requisitos, arquitetura, persistência |
 | [backend/docs/DIAGRAMAS.md](backend/docs/DIAGRAMAS.md) | Classes, componentes, pacotes, casos de uso, sequência, DER |
 | [backend/docs/PADROES-DE-PROJETO.md](backend/docs/PADROES-DE-PROJETO.md) | Padrões usados, e os descartados com justificativa |

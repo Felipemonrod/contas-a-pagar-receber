@@ -12,7 +12,7 @@ import lombok.Setter;
 /**
  * Cartorio de protesto. Equivale a Cartorio.db do livro (cap. 5, p. 77).
  *
- * RN09: o cartorio precisa estar cadastrado antes de o titulo ser
+ * RN16: o cartorio precisa estar cadastrado antes de o titulo ser
  * enviado a protesto.
  */
 @Entity
